@@ -1,6 +1,6 @@
 function Scenify (selector) {
 	this.selector = selector;
-	this.controller = new ScrollMagic.Controller ();
+	this.controller = new ScrollMagic.Controller ({addIndicators: true});
 	this.callbacks = {
 		scene: { progress: [], enter: [], leave: [] }
 	};
@@ -16,9 +16,10 @@ Scenify.prototype = {
 		$(this.selector).children ().each ($.proxy (function (index, child) {
 			var sceneElement = $(child);
 			var sceneData = sceneElement.data ();
-			var hook = sceneData.scene_trigger ? sceneData.scene_trigger : 0.9;
-			var scene = new ScrollMagic.Scene ({triggerElement: child, tweenChanges: true, duration: "100%"})
+			var hook = sceneData.scene_trigger ? sceneData.scene_trigger : 0.15;
+			var scene = new ScrollMagic.Scene ({triggerElement: child, tweenChanges: true, duration: sceneElement.height ()})
 					.triggerHook (hook)
+					.addIndicators ()
 					.addTo (this.controller);
 			$(sceneElement).addClass ("scene");
 
@@ -36,7 +37,7 @@ Scenify.prototype = {
 	progressCallback: function (ev) { 
 		if (ev.type == "progress") {
 			var elm = ev.target.triggerElement ();
-			this.trigger ("scene_progress", [elm]);
+			this.trigger ("scene_progress", [elm, ev.progress]);
 		}
 	},
 	enterCallback: function (ev) { 
