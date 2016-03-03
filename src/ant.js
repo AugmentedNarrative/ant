@@ -45,6 +45,7 @@ Ant.prototype = {
 			}
 			q.await ($.proxy (this.dataCallback, this));
 		} else {
+			this.dataCallback ();
 		}
 		this.initSlides ();
 	},
@@ -152,6 +153,8 @@ Ant.prototype = {
 						this.quantifyMap (controlChart, quantify, qObj);
 					}
 				} catch (e) { console.log (e); console.log (e.stack); }
+			} else { 
+				console.log ("no quantify or quantifier " + controlChart + ": " + quantify + "," +quantifier + ";");
 			}
 			/*
 			* Chart: Map.
@@ -198,6 +201,8 @@ Ant.prototype = {
 			var s = $(data.control_element);
 			if (data.element_add_class) { s.addClass (data.element_add_class); }
 			if (data.element_remove_class) { s.removeClass (data.element_remove_class); }
+			if (data.element_hide !== undefined) { console.log ("will hide element");  s.hide (); }
+			if (data.element_show !== undefined) { s.show (); }
 			if (data.element_attrs) { s.attr (data.element_attrs); 
 				if (data.element_attrs === Object (data.element_attrs)) { 
 					data.element_attrs = JSON.stringify (val);
@@ -312,7 +317,7 @@ Ant.prototype = {
 		var zoomTo = data.zoom_to;
 		var zoomLevel = data.zoom_level; 
 		if (zoomTo) {
-			this.charts [controlChart].zoomTo ("#" + zoomTo, zoomLevel);
+			this.charts [controlChart].zoomTo (zoomTo, zoomLevel);
 		} else if (zoomLevel) {
 			this.charts [controlChart].setScale (zoomLevel); 
 		}
@@ -356,7 +361,7 @@ Ant.prototype = {
 		*/
 		var plot = l.plot ? l.plot : "lines"
 		var l = this.charts [map].topologies [layer];
-		l.redraw (this.setFeatureId (l), qn, plot);
+		l.redraw (this.setFeatureId (this.conf.data [layer]), qn, plot);
 		l.on ("click", function (a, id, x, el) { this.parseElement (el); }, this); 
 		l.on ("mouseover", function (a, id, x, el) { this.parseElement (el); }, this); 
 		l.on ("mouseout", function (a, id, x, el) { this.parseElement (el); }, this); 
@@ -464,14 +469,15 @@ Ant.prototype = {
 					for (var a in layers) {
 						var l = m.conf.data [layers [a]];
 						var plot = l.plot ? l.plot : "lines";
-						obj.addFeatures (l.id, m.data [l.id], l.key); 
-						obj.topologies [l.id].redraw (m.setFeatureId (l), null, plot);
+						var topo = obj.addFeatures (l.id, m.data [l.id], l.key); 
+						topo.redraw (m.setFeatureId (l), null, plot)
 					}
 				}
 				m.charts [id] = obj;
 				m.parseElement ("#" + id);
 			}
 			if (dChart == "bars" || dChart == "lines" || dChart == "pie") { 
+				console.log ("will parse chart" + id);
 				obj  = new ant.charts [dChart] (id, $(this).data ())	
 				m.charts [id] = obj;
 				m.parseElement ("#" + id);
