@@ -135,9 +135,6 @@ Ant.prototype = {
 		var controlChart = !data.control_chart ? id : data.control_chart;
 		if (controlChart) { 
 			var chartType = this.chartType (controlChart); 
-			if (chartType == "lines" || chartType == "bars" || chartType == "pie") {
-				this.parseChart (element, data);
-			}
 			/*
 			* If we have to quantify, lets prequantify :)
 			*/
@@ -153,8 +150,9 @@ Ant.prototype = {
 						this.quantifyMap (controlChart, quantify, qObj);
 					}
 				} catch (e) { console.log (e); console.log (e.stack); }
-			} else { 
-				console.log ("no quantify or quantifier " + controlChart + ": " + quantify + "," +quantifier + ";");
+			}
+			if (chartType == "lines" || chartType == "bars" || chartType == "pie") {
+				this.parseChart (element, data);
 			}
 			/*
 			* Chart: Map.
@@ -256,6 +254,7 @@ Ant.prototype = {
 		if (data.control_scroll != '' && this.scroll [data.control_scroll]) { 
 			var scroll = this.scroll [data.control_scroll];
 			if (data.scroll_to !== undefined) { 
+				console.log ("will scroll to: " + data.scroll_to);
 				scroll.scrollTo (data.scroll_to);
 			}
 		}
@@ -299,6 +298,14 @@ Ant.prototype = {
 		}
 	},
 	parseChart: function (element, data) {
+		var id = $(element).attr ("id");
+		var controlChart = data.control_chart ? data.control_chart : id;
+		if (!controlChart) throw "No control_chart defined in element: " + element;
+		var highlight = data.highlight;
+		if (highlight) { 
+			this.charts [controlChart].removeClass (".highlight", "highlight");
+			this.charts [controlChart].addClass (data.highlight, "highlight");
+		}
 	},
 	/*
 	*
@@ -320,6 +327,15 @@ Ant.prototype = {
 			this.charts [controlChart].zoomTo (zoomTo, zoomLevel);
 		} else if (zoomLevel) {
 			this.charts [controlChart].setScale (zoomLevel); 
+		}
+		if (data.select) { 
+			console.log ("will select: " + data.select + " " + controlChart);
+			if (data.select_add_class) { 
+				this.charts [controlChart].addClass (data.select, data.select_add_class);
+			}
+			if (data.select_remove_class) { 
+				this.charts [controlChart].removeClass (data.select, data.select_remove_class);
+			}
 		}
 		var highlight = data.highlight;
 		if (highlight) { 
@@ -344,6 +360,9 @@ Ant.prototype = {
 		if (!q && quantifier) throw "No quantifier found: " + chartType + " " + quantifier.fn;
 		var qn = quantifier ? {fn: q, context: this, args: quantifier.ar, data: quantifier.data} : null;
 		this.charts [chart].redraw (quantifier.data, qn);
+		this.charts [chart].on ("click", function (a, id, x, el) { this.parseElement (el); }, this); 
+		this.charts [chart].on ("mouseover", function (a, id, x, el) { console.log (arguments); this.parseElement (el); }, this); 
+		this.charts [chart].on ("mouseout", function (a, id, x, el) { this.parseElement (el); }, this); 
 	},
 	quantifyMap: function (map, layer, quantifier) {
 		if (this.conf.quantifiers && this.conf.quantifiers ["maps"]) {
@@ -449,40 +468,41 @@ Ant.prototype = {
 	chartType: function (chartName) {
 		return this.chartTypes [chartName];
 	},
-	initCharts: function () {
-		//TODO: get the closures right.. this is hacky. :(
-		var m = this;
-		$("[data-chart]").each (
-		function (e) { 
-			// TODO REMOVE BOILERPLATE CODE. >:|
-			var id = $(this).attr ("id");
-			var data = $(this).data ();
+	initChart: function (element) { 
+		var id = $(element).attr ('id');
+		if (!this.charts [id]) {
+			var data = $(element).data ();
 			var dChart = data.chart;
-			m.chartTypes [id] = dChart; 
+			this.chartTypes [id] = dChart; 
 			var obj;
 			if (dChart == "map") {
-				obj  = new ant.charts.map ("#" + id, $(this).width (), $(this).height ());
+				obj  = new ant.charts.map ("#" + id, $(element).width (), $(element).height ());
 				obj.setCenter ({lat: data.map_center_lat, lon: data.map_center_lon});
 				// TODO fix this following lines: the layers should be drawn by the quantifier.
 				if (data.map_layers) { 
 					var layers = data.map_layers.split (',');
 					for (var a in layers) {
-						var l = m.conf.data [layers [a]];
+						var l = this.conf.data [layers [a]];
 						var plot = l.plot ? l.plot : "lines";
-						var topo = obj.addFeatures (l.id, m.data [l.id], l.key); 
-						topo.redraw (m.setFeatureId (l), null, plot)
+						var topo = obj.addFeatures (l.id, this.data [l.id], l.key); 
+						topo.redraw (this.setFeatureId (l), null, plot)
 					}
 				}
-				m.charts [id] = obj;
-				m.parseElement ("#" + id);
+				this.charts [id] = obj;
+				this.parseElement ("#" + id);
 			}
 			if (dChart == "bars" || dChart == "lines" || dChart == "pie") { 
-				console.log ("will parse chart" + id);
 				obj  = new ant.charts [dChart] (id, $(this).data ())	
-				m.charts [id] = obj;
-				m.parseElement ("#" + id);
+				this.charts [id] = obj;
+				this.parseElement ("#" + id);
 			}
-		});
+		} else {
+			console.log ("Chart already exists: " + id);
+		}
+	},
+	initCharts: function () {
+		var m = this;
+		$("[data-chart]").each (function (e) { m.initChart.apply (m, [$(this)]); });
 	},
 	initSlides: function () { 
 		var slides = {};
