@@ -1,6 +1,9 @@
 function Scenify (selector) {
 	this.selector = selector;
 	this.controller = new ScrollMagic.Controller ({addIndicators: true});
+	this.controller.scrollTo (function (newpos) {
+		window.scrollTo (0, newpos + 2);
+	});
 	this.callbacks = {
 		scene: { progress: [], enter: [], leave: [] }
 	};
@@ -32,6 +35,7 @@ Scenify.prototype = {
 		return this;
 	},
 	scrollTo: function (sel) { 
+		console.log (this.scenes [sel]);
 		this.controller.scrollTo (this.scenes [sel]);
 	},
 	progressCallback: function (ev) { 

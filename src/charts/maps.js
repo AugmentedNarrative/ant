@@ -1,10 +1,10 @@
 //TODO refactor this.. :)
 ant.charts.map = function (container, width, height) {
-	this.scale = 200000;
+	this.scale = 100;
 	this.translate = [width / 2, height / 2];
 	this.refCenter = [.5, .5];
 	this.translate = [width * this.refCenter [0], height * this.refCenter [1]]; 
-	this.center = 0;
+	this.center = {lat: 34.5133, lon: -94.1629};
 	this.width = width;
 	this.height = height;
 	this.container = container;
@@ -85,7 +85,7 @@ ant.charts.map = function (container, width, height) {
 	}
 	this.zoomTo = function (selector, context) {
 		if (!context) context = this.context 
-		var e = d3.select (selector);
+		var e = this.svg.selectAll (selector);
 		if (!e) throw "No element found: " + selector;
 		this.zoomSelector = selector;
 		this.zoomContext = context;
@@ -129,6 +129,7 @@ ant.charts.map = function (container, width, height) {
 			throw "Empty features collections? " + topo;
 		}
 	}
+	return this;
 };
 ant.charts.map.topology = function (cont, name, path, t, f) {
 	this.container = cont;

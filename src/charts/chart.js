@@ -58,5 +58,46 @@ var asChart = function () {
 
 		return this;
 	}
+	this.addClass = function (sel, cls) { 
+		this.svg.selectAll (sel).classed (cls, true);
+	}
+	this.removeClass = function (sel, cls) { 
+		this.svg.selectAll (sel).classed (cls, false);
+	}
+	this.createCallback = function (type) {
+		var me = this;
+		return function () {
+			var args = [];
+			for (var a in arguments) {
+				args.push (arguments [a]);
+			}
+			args.push (this);
+			me.callback.apply (me, [type, args]);
+		}
+	}
+	this.callbacks = {};
+	this.on = function (ev, cb, scope) {
+		if (!this.callbacks [ev]) {
+			this.callbacks [ev] = [];
+		}
+		if (!scope) { scope = this; }
+		this.callbacks [ev].push ({ scope: scope, callback: cb});	
+	}
+	this.removeCallback = function (ev, cb) {
+		for (var x in this.callbacks [ev]) {
+			if (this.callbacks [ev] [x].callback == cb) {
+				this.callbacks [ev].splice (x, 1);
+			}
+		}
+	}
+	this.callback = function (ev, args) {
+		if (!this.callbacks [ev]) return;
+		for (cb in this.callbacks [ev]) {
+			if (cb) { 
+				var x = this.callbacks [ev][cb];	
+				x.callback.apply (x.scope, args); 
+			}
+		}
+	}
 	return this;
 }
