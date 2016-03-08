@@ -28,23 +28,37 @@ var asChart = function () {
 	this.quantifierCallback = function (quantifier, callback, innerCallback) {
 		if (quantifier) {
 			// this generates a callback that gives us the chance to edit every attribute in the chart element, and edit it with the users' values (class, degrees, x, y, etc).
-			return function (selector, k, a, i) {  
+			return function (selector, a, i) {  
 				var qn = quantifier;
-				var rets = [];
-				if (a !== Object (a)) { //no objects please, only arrays.
+				if (Array.isArray(a)) { //no objects please, only arrays.
+					var rets = [];
 					// this is for a nested collection. It only supports the first two dimensions. AFAIK. 
 					for (var d in a) { 
-						var ret = qn.fn.apply (qn.context, [k, {key: d}, qn.args, qn.data]); //calls the users' callback for every item. 
-						if (innerCallback) rets.push (innerCallback.apply (this, [ret])); // calls charts' "inner" callback with users' input.
+						var ret = qn.fn.apply (qn.context, [a [d], qn.args, qn.data]); //calls the users' callback for every item. 
+						if (innerCallback) { 
+							ret = innerCallback.apply (this, [ret]); // calls charts' "inner" callback with users' input.
+						}
+						rets.push (ret);
 					}
 					var attrs = callback.apply (this, [rets]); // calls charts' normal callback with the collected return values from the inner callback;
 				} else if (callback) {
-					var ret = qn.fn.apply (qn.context, [k, {key: d}, qn.args, qn.data]);
+					var ret = qn.fn.apply (qn.context, [a, qn.args, qn.data]);
 					var attrs = callback.apply (this, [ret]); 
 				} else {
-					var attrs = qn.fn.apply (qn.context [k, {key: d}, qn.args, qn.data]);
+					var attrs = qn.fn.apply (qn.context [a, qn.args, qn.data]);
 				}
+				var data = attrs.data;
+				attrs.data = null;
 				d3.select (selector).attr (attrs);
+				if (data) { 
+					for (var d in data) { 
+						var val = data [d];
+						if (val === Object (val)) {
+							val = JSON.stringify (val);
+						}
+						d3.select (selector).attr ("data-" + d, val);
+					}
+				}
 			}
 		}
 		return function (selector, d) { d3.select (selector).attr ("class", ""); };

@@ -99,8 +99,6 @@ Ant.prototype = {
 	scrollEnter: function (element) {
 		$(element.parentNode).children ().removeClass ("highlight");
 		$(element).addClass ("highlight");
-		console.log ("scroll enter");
-		console.log (element);
 		this.parseElement (element);
 		$(element).find ("form[data-control]").change ();
 	},
@@ -199,7 +197,7 @@ Ant.prototype = {
 			var s = $(data.control_element);
 			if (data.element_add_class) { s.addClass (data.element_add_class); }
 			if (data.element_remove_class) { s.removeClass (data.element_remove_class); }
-			if (data.element_hide !== undefined) { console.log ("will hide element");  s.hide (); }
+			if (data.element_hide !== undefined) { s.hide (); }
 			if (data.element_show !== undefined) { s.show (); }
 			if (data.element_attrs) { s.attr (data.element_attrs); 
 				if (data.element_attrs === Object (data.element_attrs)) { 
@@ -254,7 +252,6 @@ Ant.prototype = {
 		if (data.control_scroll != '' && this.scroll [data.control_scroll]) { 
 			var scroll = this.scroll [data.control_scroll];
 			if (data.scroll_to !== undefined) { 
-				console.log ("will scroll to: " + data.scroll_to);
 				scroll.scrollTo (data.scroll_to);
 			}
 		}
@@ -263,7 +260,6 @@ Ant.prototype = {
 		*/
 		if (data.control_slide != '' && this.slides [data.control_slide]) {
 			if (data.scroll_to !== undefined) { 
-				console.log ("will scroll");
 				this.slides [data.control_slide].controller.scrollTo (this.slides [data.control_slide].slides [data.scroll_to]);
 			}
 		}
@@ -277,10 +273,14 @@ Ant.prototype = {
 				}
 			}
 			else {
+				var me = this;
+				$(data.parse).each (function () { me.parseElement.apply (me, [$(this) [0]], false); });
+				/*
 				var x = data.parse.split (",");
 				for (var e in x) { 
 					this.parseElement ("#" + x[e].trim (), false);
 				}
+				*/
 
 			}
 		}
@@ -329,7 +329,6 @@ Ant.prototype = {
 			this.charts [controlChart].setScale (zoomLevel); 
 		}
 		if (data.select) { 
-			console.log ("will select: " + data.select + " " + controlChart);
 			if (data.select_add_class) { 
 				this.charts [controlChart].addClass (data.select, data.select_add_class);
 			}
@@ -361,7 +360,7 @@ Ant.prototype = {
 		var qn = quantifier ? {fn: q, context: this, args: quantifier.ar, data: quantifier.data} : null;
 		this.charts [chart].redraw (quantifier.data, qn);
 		this.charts [chart].on ("click", function (a, id, x, el) { this.parseElement (el); }, this); 
-		this.charts [chart].on ("mouseover", function (a, id, x, el) { console.log (arguments); this.parseElement (el); }, this); 
+		this.charts [chart].on ("mouseover", function (a, id, x, el) { this.parseElement (el); }, this); 
 		this.charts [chart].on ("mouseout", function (a, id, x, el) { this.parseElement (el); }, this); 
 	},
 	quantifyMap: function (map, layer, quantifier) {
@@ -532,7 +531,6 @@ Ant.prototype = {
 					return function (e) { 
 						var d = $(e.target.triggerElement()).data ();
 						if (d.slide_leave_parse !== undefined) { 
-							console.log (d.slide_leave_parse);
 							var x = d.slide_leave_parse.split (',');
 							for (a in x) { 
 								me.parseElement.apply (me, ["#" + x [a]]);

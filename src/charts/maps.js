@@ -138,6 +138,7 @@ ant.charts.map.topology = function (cont, name, path, t, f) {
 	this.features = f;
 	this.path = path;
 	this.redraw = function (setId, quantifier, plot) {
+		this.callbacks = {};
 		if (!plot) plot = "lines";
 		this.container.select ("g." + this.name).selectAll ("text").remove ();
 		var path = this.path;
