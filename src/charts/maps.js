@@ -102,12 +102,15 @@ ant.charts.map = function (container, width, height) {
 
 		this.svg
 			.selectAll ("path")
+			.attr ("vector-effect", "non-scaling-stroke")
 			.attr ("transform", "translate(" + translate + ")scale(" + scale + ")");
 		this.svg
 			.selectAll ("text")
+			.attr ("vector-effect", "non-scaling-stroke")
 			.attr ("transform", "translate(" + translate + ")scale(" + scale + ")");
 		this.svg
 			.selectAll ("circle")
+			.attr ("vector-effect", "non-scaling-stroke")
 			.attr ("transform", "translate(" + translate + ")scale(" + scale + ")")
 	}
 	this.addFeatures = function (topo, collection, key, quantifier, plot) {
