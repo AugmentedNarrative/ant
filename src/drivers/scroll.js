@@ -1,6 +1,6 @@
 function Scenify (selector) {
 	this.selector = selector;
-	this.controller = new ScrollMagic.Controller ({addIndicators: true});
+	this.controller = new ScrollMagic.Controller ({addIndicators: false});
 	this.controller.scrollTo (function (newpos) {
 		window.scrollTo (0, newpos + 2);
 	});
@@ -22,7 +22,7 @@ Scenify.prototype = {
 			var hook = sceneData.scene_trigger ? sceneData.scene_trigger : 0.15;
 			var scene = new ScrollMagic.Scene ({triggerElement: child, tweenChanges: true, duration: sceneElement.height ()})
 					.triggerHook (hook)
-					.addIndicators ()
+					//.addIndicators ()
 					.addTo (this.controller);
 			$(sceneElement).addClass ("scene");
 
@@ -35,8 +35,8 @@ Scenify.prototype = {
 		return this;
 	},
 	scrollTo: function (sel) { 
-		console.log (this.scenes [sel]);
 		this.controller.scrollTo (this.scenes [sel]);
+		this.trigger ("enter", this.scenes [sel]);
 	},
 	progressCallback: function (ev) { 
 		if (ev.type == "progress") {
