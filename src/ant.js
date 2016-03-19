@@ -174,9 +174,9 @@ Ant.prototype = {
 					m.pause ();
 					m.currentTime (0);
 				}
-				if (data.media_time) {
+				if (data.media_time !== undefined) {
 					m.pause ();
-					m.currentTime (data.media_time);
+					m.currentTime (parseInt (data.media_time));
 					m.play ();
 				}
 				if (data.media_pause !== undefined) {
@@ -438,32 +438,31 @@ Ant.prototype = {
 		if (x) { 
 			x.src = $(elm).data ("media_url");
 			var media = new Popcorn (x);
-			media.load ();
-			var cb = function (context, obj, elm) { 
-				return function (e) { 
-					var currentSecond = Math.floor (obj.currentTime ());
-					if (obj.currentSecond != currentSecond) {
-						var parseCb = function (me) { 
-							return function () { 
-								me.parseElement.apply (me, [$(this) [0]]);
-							} 
-						}
-						console.log (currentSecond);
-						$("[data-subscribe_media='" + elm.id + "'][data-subscribe_time='" + currentSecond + "']").each (parseCb (context));
-						obj.currentSecond = currentSecond;
-
+		} else if (alt) {
+			var media = alt; 
+		}
+		media.load ();
+		var cb = function (context, obj, elm) { 
+			return function (e) { 
+				var currentSecond = Math.floor (obj.currentTime ());
+				if (obj.currentSecond != currentSecond) {
+					var parseCb = function (me) { 
+						return function () { 
+							me.parseElement.apply (me, [$(this) [0]]);
+						} 
 					}
+					console.log (currentSecond);
+					$("[data-subscribe_media='" + elm.id + "'][data-subscribe_time='" + currentSecond + "']").each (parseCb (context));
+					obj.currentSecond = currentSecond;
 
 				}
-			}
-			media.on ("timeupdate", cb (this, media, elm));
-			//TODO subscribers for play, stop, etc.
 
-			this.medium [id] = media;
-		} else if (alt) { 
-			this.medium [id] = alt;
-			alt.load ();
+			}
 		}
+		media.on ("timeupdate", cb (this, media, elm));
+		//TODO subscribers for play, stop, etc.
+
+		this.medium [id] = media;
 	},
 	chartType: function (chartName) {
 		return this.chartTypes [chartName];
@@ -565,8 +564,46 @@ function Timefy () {
 }
 Timefy.prototype = {
 	constructor: Timefy,
-	init: function () {},
+	_interval: null,
+	_tic: -1,
+	_paused: true,
+	init: function () {
+		this.paused (true);
+		this._tic = -1;
+		this._interval = null;
+	},
 	load: function () {},
-	play: function () {},
-	stop: function () {}
+	play: function () {
+		console.log (this);
+		this.paused (false);
+		console.log ("Paused " + this.paused ());
+		if (!this._timeout ) { 
+			var cb = function (me) { return function () { console.log ("tic"); if (!me.paused.apply (me)) { me._tic++; me.callback.apply (me, ["timeupdate"]); } }} 
+			this._interval = setInterval (cb (this), 1000);	
+		}
+	},
+	currentTime: function (tic) { if (tic !== undefined) { this._tic = tic; } return this._tic;},
+	muted: function () {},
+	pause: function () {  
+		console.log ("Will pause")
+		if (!this.paused ()) this.paused (true);
+	},
+	paused: function (paused) { if (paused !== undefined) { this._paused = paused; } return this._paused },
+	stop: function () {
+		clearInterval (this._interval);
+		this.init ();
+	},
+	callbacks: {},
+	on: function (ev, cb) {
+		if (!this.callbacks [ev]) { this.callbacks [ev] = []; }
+		this.callbacks [ev].push (cb);
+	},
+	callback: function (ev) { 
+		console.log ("will call" + ev);
+		if (!this.callbacks [ev]) return;
+		for (cb in this.callbacks [ev]) {
+			var x = this.callbacks [ev] [cb];
+			if (x) x (); //TODO check scopes;
+		}
+	}
 }
