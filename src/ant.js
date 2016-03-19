@@ -199,6 +199,7 @@ Ant.prototype = {
 			if (data.element_remove_class) { s.removeClass (data.element_remove_class); }
 			if (data.element_hide !== undefined) { s.hide (); }
 			if (data.element_show !== undefined) { s.show (); }
+			if (data.element_toggle !== undefined) { s.toggle (); }
 			if (data.element_attrs) { s.attr (data.element_attrs); 
 				if (data.element_attrs === Object (data.element_attrs)) { 
 					data.element_attrs = JSON.stringify (val);
