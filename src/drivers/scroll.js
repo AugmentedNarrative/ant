@@ -30,13 +30,26 @@ Scenify.prototype = {
 			scene.on ("leave", $.proxy (this.leaveCallback, this));
 			scene.on ("progress", $.proxy (this.progressCallback, this));
 			this.scenes [sceneElement.attr ('id')] = scene;
+			//TODO this adds the scenes by id, make it so that we can access it by index too (for 'next' and 'prev' purposes) 
 
 		}, this));
 		return this;
 	},
 	scrollTo: function (sel) { 
 		this.controller.scrollTo (this.scenes [sel]);
-		this.trigger ("enter", this.scenes [sel]);
+		this.trigger ("enter", this.scenes [sel]); //TODO Verify why I used enter and not scene_enter here... 
+	},
+	/*
+	* Scroll to next and prev require the scenes to have id, otherwise it wont work
+	* TODO: make it work without requiring id
+	*/
+	scrollToNext: function () { 
+		var next = $(this.currentScene.triggerElement ()).next ()
+		this.scrollTo (next.attr ('id'));
+	},
+	scrollToPrev: function () { 
+		var prev = $(this.currentScene.triggerElement ()).prev ()
+		this.scrollTo (prev.attr ('id'));
 	},
 	progressCallback: function (ev) { 
 		if (ev.type == "progress") {
@@ -45,7 +58,9 @@ Scenify.prototype = {
 		}
 	},
 	enterCallback: function (ev) { 
+		console.log ("enter scene");
 		var elm = ev.target.triggerElement ();
+		this.currentScene = ev.target;
 		this.trigger ("scene_enter", [elm]);
 	},
 	leaveCallback: function (ev) {

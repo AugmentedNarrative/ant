@@ -87,7 +87,8 @@ Ant.prototype = {
 	scrollLeave: function (element) {
 		//TODO test this code as it was migrated from this.maps to this.charts
 		this.currentElement = null; 
-		var controlMap = $(element).data ("control_map");
+		var data = $(element).data ();
+		var controlMap = data ["control_map"];
 		if (controlMap) {
 			var onClickLayer = $(element).data ("map_click_layer");
 			var onClick = $(element).data ("map_click");
@@ -95,12 +96,36 @@ Ant.prototype = {
 				this.charts [controlMap].topologies [onClickLayer].removeCallback ("click", this.onClick);
 			}
 		}
+		if (data.scroll_leave_parse) { 
+			if (Array.isArray (data.scroll_leave_parse)) { 
+				for (var x in data.scroll_leave_parse) { 
+					this.parseElement (data.scroll_leave_parse [x], false);
+				}
+			}
+			else {
+				var me = this;
+				$(data.scroll_leave_parse).each (function () { me.parseElement.apply (me, [$(this) [0]], false); });
+			}
+			
+		}
 	},
 	scrollEnter: function (element) {
 		$(element.parentNode).children ().removeClass ("highlight");
 		$(element).addClass ("highlight");
 		this.parseElement (element);
 		$(element).find ("form[data-control]").change ();
+		var data = $(element).data ();
+		if (data.scroll_enter_parse) { 
+			if (Array.isArray (data.scroll_enter_parse)) { 
+				for (var x in data.scroll_enter_parse) { 
+					this.parseElement (data.scroll_enter_parse [x], false);
+				}
+			}
+			else {
+				var me = this;
+				$(data.scroll_enter_parse).each (function () { me.parseElement.apply (me, [$(this) [0]], false); });
+			}
+		}
 	},
 	/*
 	* getCallback
@@ -160,7 +185,7 @@ Ant.prototype = {
 			}
 		}
 		/*
-		* Videos
+		* Media
 		*/
 		if (data.control_media) { 
 			var m = this.medium [data.control_media];
@@ -175,9 +200,9 @@ Ant.prototype = {
 					m.currentTime (0);
 				}
 				if (data.media_time !== undefined) {
-					m.pause ();
+				//	m.pause ();
 					m.currentTime (parseInt (data.media_time));
-					m.play ();
+				//	m.play ();
 				}
 				if (data.media_pause !== undefined) {
 					m.pause ();
@@ -254,6 +279,12 @@ Ant.prototype = {
 			var scroll = this.scroll [data.control_scroll];
 			if (data.scroll_to !== undefined) { 
 				scroll.scrollTo (data.scroll_to);
+			}
+			if (data.scroll_to_next !== undefined) { 
+				scroll.scrollToNext ();
+			}
+			if (data.scroll_to_previous !== undefined) { 
+				scroll.scrollToPrev ();
 			}
 		}
 		/*
@@ -416,7 +447,6 @@ Ant.prototype = {
 				x.parseElement.apply (x, [this]);
 			}
 		);
-		//$("[data-subscribe_media]").
 		var cb = function (me) { 
 			return function (r) { 
 				me.addMedia.apply (me, [$(this) [0]]); 
@@ -446,12 +476,20 @@ Ant.prototype = {
 			return function (e) { 
 				var currentSecond = Math.floor (obj.currentTime ());
 				if (obj.currentSecond != currentSecond) {
+					var every = [1,2,3,4,5,10,15,20,30,40,45,50,55,60];	
+					var trigg = [];
 					var parseCb = function (me) { 
 						return function () { 
 							me.parseElement.apply (me, [$(this) [0]]);
 						} 
 					}
-					console.log (currentSecond);
+					for (var i in every) { 
+						if (currentSecond % every [i] === 0) trigg.push (every [i]);
+					}
+					for (var i in trigg) {  
+						$("[data-subscribe_media='" + elm.id + "'][data-subscribe_every='" + trigg [i] + "']").each (parseCb (context));
+					}
+					//console.log (currentSecond);
 					$("[data-subscribe_media='" + elm.id + "'][data-subscribe_time='" + currentSecond + "']").each (parseCb (context));
 					obj.currentSecond = currentSecond;
 
@@ -574,18 +612,15 @@ Timefy.prototype = {
 	},
 	load: function () {},
 	play: function () {
-		console.log (this);
 		this.paused (false);
-		console.log ("Paused " + this.paused ());
-		if (!this._timeout ) { 
-			var cb = function (me) { return function () { console.log ("tic"); if (!me.paused.apply (me)) { me._tic++; me.callback.apply (me, ["timeupdate"]); } }} 
+		if (!this._interval) { 
+			var cb = function (me) { return function () { if (!me.paused.apply (me)) { me._tic++; me.callback.apply (me, ["timeupdate"]); } }} 
 			this._interval = setInterval (cb (this), 1000);	
 		}
 	},
 	currentTime: function (tic) { if (tic !== undefined) { this._tic = tic; } return this._tic;},
 	muted: function () {},
 	pause: function () {  
-		console.log ("Will pause")
 		if (!this.paused ()) this.paused (true);
 	},
 	paused: function (paused) { if (paused !== undefined) { this._paused = paused; } return this._paused },
@@ -599,7 +634,6 @@ Timefy.prototype = {
 		this.callbacks [ev].push (cb);
 	},
 	callback: function (ev) { 
-		console.log ("will call" + ev);
 		if (!this.callbacks [ev]) return;
 		for (cb in this.callbacks [ev]) {
 			var x = this.callbacks [ev] [cb];
