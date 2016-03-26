@@ -10,60 +10,67 @@ var asLines = function () {
 		var pointDistance = this.width / itemsMax;
 		var height = this.height;
 
-		var after = function (container) { 
-			return function (rets) { 
+		var after = function (container, origAttrs) { 
+			return function (rets, a) { 
 				var ys = [], rs = [];
 				var attrs = {};
 				var cHeight = height;
 				for (var i in rets) {
-					rets [i].y = cHeight - rets [i].y;
-					ys.push (rets [i].y);
-					rs.push (rets [i].r);
+					var origY = cHeight - rets [i].y;
+					rets [i].y = 0;
 					rets [i].x = pointDistance * i;
+					rets [i].width = pointDistance;
+					rets [i].height = cHeight; 
+
+					var rect = container.insert ("rect", ":first-child")
+						.on ("click", this.createCallback ("mouseover"))
+						.on ("mouseover", this.createCallback ("mouseover"))
+						.on ("mouseout", this.createCallback ("mouseout"));
+					this.setElementAttributes (rect, rets [i]);
+
+					rets [i].y = origY;
 					rets [i].cx = rets [i].x;
 					rets [i].cy = rets [i].y;
-					container.append ("circle").attr (rets [i]);
+					ys.push (rets [i].y);
+					rs.push (rets [i].r);
+
+					var circle = container.insert ("circle")
+						.on ("click", this.createCallback ("mouseover"))
+						.on ("mouseover", this.createCallback ("mouseover"))
+						.on ("mouseout", this.createCallback ("mouseout"));
+					this.setElementAttributes (circle, rets [i]);
 					rets [i].y = null;
 				//	$.extend (attrs, rets);
 				}
 				var x = function (d, e) { return pointDistance * e; };
 				var y = function (d, e) { return ys [e]; };
+
+				var line = container.insert ("path");
 				var svgLine = d3.svg.line ().x (x).y (y);
-				attrs.d = function (t) { return svgLine (ys) };  
+				line.attr ("d", function (t) { return svgLine (ys) });
+				this.setElementAttributes (line, origAttrs);
 				
 
 				return attrs;
 			}
 		}
-		//var qn = this.quantifierCallback (quantifier, after);
 
 		var bar = this.svg.selectAll ("g")
 			.data (lines);
+		var quantifierCb = this.quantifierCallback, me = this; 
 
 		bar.enter ().append ("g")
 			.attr ("transform", "translate (0, " + this.margin.top + ")")
+			.each (function (d, e) { 
+				var data, attrs = d.attrs;
+				var qn = quantifierCb.apply (me, [quantifier, after (bar, attrs)]); 
+				qn.apply  (me, [this, d.values, e]);  
+				me.setElementAttributes (d3.select (this), attrs);
+			})
 			.on ("click", this.createCallback ("mouseover"))
 			.on ("mouseover", this.createCallback ("mouseover"))
 			.on ("mouseout", this.createCallback ("mouseout"));
-		var quantifierCb = this.quantifierCallback; 
-		bar.append ("path")
-			.each (function (d, e) { 
-				var qn = quantifierCb (quantifier, after (bar)); 
-				qn (this, d.values, e);  
-				var attrs = d.attrs;
-				var data = attrs.data;
-				attrs.data = null;
-				d3.select (this).attr (d.attrs); 
-				if (data) { 
-					for (var d in data) { 
-						var val = data [d];
-						if (val === Object (val)) {
-							val = JSON.stringify (val);
-						}
-						d3.select (this).attr ("data-" + d, val);
-					}
-				}
-			})
+
 	}
 	return this;
 }

@@ -237,7 +237,7 @@ Ant.prototype = {
 		* Callback
 		*/
 		if (data.callback) {
-			var cb = this.data.callbacks [data.callback]
+			var cb = this.conf.callbacks [data.callback]
 			if (cb) {
 				try { 
 					cb.apply (this, [data.callback_args]);

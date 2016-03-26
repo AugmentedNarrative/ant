@@ -40,7 +40,7 @@ var asChart = function () {
 						}
 						rets.push (ret);
 					}
-					var attrs = callback.apply (this, [rets]); // calls charts' normal callback with the collected return values from the inner callback;
+					var attrs = callback.apply (this, [rets ]); // calls charts' normal callback with the collected return values from the inner callback;
 				} else if (callback) {
 					var ret = qn.fn.apply (qn.context, [a, qn.args, qn.data]);
 					var attrs = callback.apply (this, [ret]); 
@@ -62,6 +62,23 @@ var asChart = function () {
 			}
 		}
 		return function (selector, d) { d3.select (selector).attr ("class", ""); };
+	}
+	this.setElementAttributes = function (element, attrs) {
+		var data;
+		if (attrs.data) {
+			data = attrs.data;	
+			attrs.data = null;
+		}
+		element.attr (attrs);
+		if (data) { 
+			for (var d in data) { 
+				var val = data [d];
+				if (val === Object (val)) { 
+					val = JSON.stringify (val);
+				}
+				element.attr ("data-" + d, val);
+			}
+		}
 	}
 	this.init = function (container, conf) {
 		this.conf = conf;

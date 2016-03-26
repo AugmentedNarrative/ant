@@ -58,7 +58,6 @@ Scenify.prototype = {
 		}
 	},
 	enterCallback: function (ev) { 
-		console.log ("enter scene");
 		var elm = ev.target.triggerElement ();
 		this.currentScene = ev.target;
 		this.trigger ("scene_enter", [elm]);
