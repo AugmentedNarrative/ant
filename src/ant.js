@@ -393,7 +393,7 @@ Ant.prototype = {
 		this.charts [chart].redraw (quantifier.data, qn);
 		this.charts [chart].on ("click", function (a, id, x, el) { this.parseElement (el); }, this); 
 		this.charts [chart].on ("mouseover", function (a, id, x, el) { this.parseElement (el); }, this); 
-		this.charts [chart].on ("mouseout", function (a, id, x, el) { this.parseElement (el); }, this); 
+		//this.charts [chart].on ("mouseout", function (a, id, x, el) { this.parseElement (el); }, this); 
 	},
 	quantifyMap: function (map, layer, quantifier) {
 		if (this.conf.quantifiers && this.conf.quantifiers ["maps"]) {
@@ -489,7 +489,6 @@ Ant.prototype = {
 					for (var i in trigg) {  
 						$("[data-subscribe_media='" + elm.id + "'][data-subscribe_every='" + trigg [i] + "']").each (parseCb (context));
 					}
-					//console.log (currentSecond);
 					$("[data-subscribe_media='" + elm.id + "'][data-subscribe_time='" + currentSecond + "']").each (parseCb (context));
 					obj.currentSecond = currentSecond;
 
