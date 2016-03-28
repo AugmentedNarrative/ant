@@ -1,5 +1,6 @@
 var asLines = function () {
 	this.redraw  = function (d, quantifier) { 
+		this.callbacks = {};
 		var data = d.data;
 		d.scale.range ([this.height, 0]); // this comes from the prequantifier and it is used by the quantifier 
 		var lines = data; //TODO verify if this works with a single line..
@@ -16,7 +17,7 @@ var asLines = function () {
 				var attrs = {};
 				var cHeight = height;
 				for (var i in rets) {
-					var origY = cHeight - rets [i].y;
+					var origY = rets [i].y;
 					rets [i].y = 0;
 					rets [i].x = pointDistance * i;
 					rets [i].width = pointDistance;
@@ -24,8 +25,7 @@ var asLines = function () {
 
 					var rect = container.insert ("rect", ":first-child")
 						.on ("click", this.createCallback ("mouseover"))
-						.on ("mouseover", this.createCallback ("mouseover"))
-						.on ("mouseout", this.createCallback ("mouseout"));
+						.on ("mouseover", this.createCallback ("mouseover"));
 					this.setElementAttributes (rect, rets [i]);
 
 					rets [i].y = origY;
@@ -36,9 +36,18 @@ var asLines = function () {
 
 					var circle = container.insert ("circle")
 						.on ("click", this.createCallback ("mouseover"))
-						.on ("mouseover", this.createCallback ("mouseover"))
-						.on ("mouseout", this.createCallback ("mouseout"));
+						.on ("mouseover", this.createCallback ("mouseover"));
 					this.setElementAttributes (circle, rets [i]);
+					if (rets [i].value) {
+						var text = container.append("text").text (rets [i].value);
+						this.setElementAttributes (text, rets [i]);
+					}
+					if (rets [i].label) {
+						var text = container.append ("text").text (rets [i].label).classed ("label", true);
+						var r = rets [i];
+						r.y = cHeight; 
+						this.setElementAttributes (text, rets [i]);
+					}
 					rets [i].y = null;
 				//	$.extend (attrs, rets);
 				}
@@ -47,7 +56,8 @@ var asLines = function () {
 
 				var line = container.insert ("path");
 				var svgLine = d3.svg.line ().x (x).y (y);
-				line.attr ("d", function (t) { return svgLine (ys) });
+				line.attr ("d", function (t) { return svgLine (ys) })
+					.on ("click", this.createCallback ("mouseover"));
 				this.setElementAttributes (line, origAttrs);
 				
 
@@ -55,22 +65,17 @@ var asLines = function () {
 			}
 		}
 
-		var bar = this.svg.selectAll ("g")
-			.data (lines);
 		var quantifierCb = this.quantifierCallback, me = this; 
-
-		bar.enter ().append ("g")
-			.attr ("transform", "translate (0, " + this.margin.top + ")")
-			.each (function (d, e) { 
-				var data, attrs = d.attrs;
-				var qn = quantifierCb.apply (me, [quantifier, after (bar, attrs)]); 
-				qn.apply  (me, [this, d.values, e]);  
-				me.setElementAttributes (d3.select (this), attrs);
-			})
-			.on ("click", this.createCallback ("mouseover"))
-			.on ("mouseover", this.createCallback ("mouseover"))
-			.on ("mouseout", this.createCallback ("mouseout"));
-
+		this.svg.selectAll ("g").remove (); //HACK lets see later how to UPDATE them the elements instead of just removing all... 
+		for (var i in lines) { 
+			var line = lines [i];
+			var bar = this.svg.append ("g")
+				.on ("click", this.createCallback ("mouseover"))
+				.on ("mouseover", this.createCallback ("mouseover"));
+			var qn = quantifierCb.apply (this, [quantifier, after (bar, line.attrs)]); 
+			qn.apply  (this, [bar, line.values]);  
+			this.setElementAttributes (bar, line.attrs);
+		}
 	}
 	return this;
 }
