@@ -31,7 +31,13 @@ var asLines = function () {
 					rets [i].y = origY;
 					rets [i].cx = rets [i].x;
 					rets [i].cy = rets [i].y;
-					ys.push (rets [i].y);
+					if (origAttrs && origAttrs ["stepped"] == true) {
+						ys.push ({y: rets [i].y, x: rets [i].x - (pointDistance / 2)});
+						ys.push ({y: rets [i].y, x: rets [i].x});
+						ys.push ({y: rets [i].y, x: rets [i].x + (pointDistance / 2)});
+					} else {
+						ys.push ({y: rets [i].y, x: rets [i].x});
+					}
 					rs.push (rets [i].r);
 
 					var circle = container.insert ("circle")
@@ -41,18 +47,28 @@ var asLines = function () {
 					if (rets [i].value) {
 						var text = container.append("text").text (rets [i].value);
 						this.setElementAttributes (text, rets [i]);
+						text.classed ("value", true);
 					}
 					if (rets [i].label) {
-						var text = container.append ("text").text (rets [i].label).classed ("label", true);
+						var text = container.append ("text").text (rets [i].label);
 						var r = rets [i];
 						r.y = cHeight; 
-						this.setElementAttributes (text, rets [i]);
+						this.setElementAttributes (text, r);
+						text.classed ("label", true);
+					}
+					if (rets [i].note) {
+						var text = container.append ("text").text (rets [i].note);
+						var r = rets [i];
+						r.y = 0;
+						this.setElementAttributes (text, r);
+						text.classed ("note", true);
+
 					}
 					rets [i].y = null;
 				//	$.extend (attrs, rets);
 				}
-				var x = function (d, e) { return pointDistance * e; };
-				var y = function (d, e) { return ys [e]; };
+				var x = function (d, e) { return ys [e].x; };
+				var y = function (d, e) { return ys [e].y; };
 
 				var line = container.insert ("path");
 				var svgLine = d3.svg.line ().x (x).y (y);
