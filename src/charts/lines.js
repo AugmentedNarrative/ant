@@ -12,25 +12,27 @@ var asLines = function () {
 		var height = this.height;
 
 		var after = function (container, origAttrs) { 
-			return function (rets, a) { 
-				var ys = [], rs = [];
+			return function (orets, a) { 
+				var ys = [], rs = [], origYs = [];
 				var attrs = {};
 				var cHeight = height;
+				var rets = jQuery.extend({}, orets, true);
 				for (var i in rets) {
 					var origY = rets [i].y;
 					rets [i].y = 0;
 					rets [i].x = pointDistance * i;
 					rets [i].width = pointDistance;
 					rets [i].height = cHeight; 
-
 					var rect = container.insert ("rect", ":first-child")
-						.on ("click", this.createCallback ("mouseover"))
+						.on ("click", this.createCallback ("click"))
 						.on ("mouseover", this.createCallback ("mouseover"));
-					this.setElementAttributes (rect, rets [i]);
+					this.setElementAttributes (rect, {data: rets [i]["data"], width: pointDistance, height: cHeight, x: rets [i].x - (pointDistance / 2), y: 0, "class": rets [i]["class"]});
+					rect.classed ("background", true);
 
 					rets [i].y = origY;
 					rets [i].cx = rets [i].x;
 					rets [i].cy = rets [i].y;
+					origYs.push (rets [i].y);
 					if (origAttrs && origAttrs ["stepped"] == true) {
 						ys.push ({y: rets [i].y, x: rets [i].x - (pointDistance / 2)});
 						ys.push ({y: rets [i].y, x: rets [i].x});
@@ -41,41 +43,56 @@ var asLines = function () {
 					rs.push (rets [i].r);
 
 					var circle = container.insert ("circle")
-						.on ("click", this.createCallback ("mouseover"))
+						.on ("click", this.createCallback ("click"))
 						.on ("mouseover", this.createCallback ("mouseover"));
-					this.setElementAttributes (circle, rets [i]);
+					this.setElementAttributes (circle, {"class": rets [i]["class"], x: rets [i].x, y: rets [i].y});
 					if (rets [i].value) {
 						var text = container.append("text").text (rets [i].value);
-						this.setElementAttributes (text, rets [i]);
+						this.setElementAttributes (text, {"class": rets [i]["class"], x: rets [i].x, y: rets [i].y});
 						text.classed ("value", true);
 					}
 					if (rets [i].label) {
 						var text = container.append ("text").text (rets [i].label);
-						var r = rets [i];
-						r.y = cHeight; 
-						this.setElementAttributes (text, r);
+						this.setElementAttributes (text, {"class": rets [i]["class"], x: rets [i].x, y: cHeight});
 						text.classed ("label", true);
 					}
 					if (rets [i].note) {
 						var text = container.append ("text").text (rets [i].note);
-						var r = rets [i];
-						r.y = 0;
-						this.setElementAttributes (text, r);
+						this.setElementAttributes (text, {"class": rets [i]["class"], x: rets [i].x, y: 10});
 						text.classed ("note", true);
 
 					}
-					rets [i].y = null;
-				//	$.extend (attrs, rets);
 				}
-				var x = function (d, e) { return ys [e].x; };
-				var y = function (d, e) { return ys [e].y; };
-
+				var x = function (d, e) { return d.x; };
+				var y = function (d, e) { return d.y; };
 				var line = container.insert ("path");
 				var svgLine = d3.svg.line ().x (x).y (y);
 				line.attr ("d", function (t) { return svgLine (ys) })
-					.on ("click", this.createCallback ("mouseover"));
+					.on ("click", this.createCallback ("click"));
 				this.setElementAttributes (line, origAttrs);
-				
+
+				//FOREGROUND 	
+				for (var i in rets) { 
+					var attrs = {
+						y: origYs [i] - (pointDistance / 2), 
+						x: (pointDistance * i) - (pointDistance / 2), 
+						width: pointDistance, 
+						height: pointDistance, 
+						data: rets [i].data
+					};
+					var rect = container.append ("rect")
+						.on ("click", this.createCallback ("click"))
+						.on ("mouseover", this.createCallback ("mouseover"));
+					this.setElementAttributes (rect, {y: attrs.y, x: attrs.x, width: attrs.width, height: attrs.height, data: attrs.data});
+					rect.classed ("square", true);
+
+					var col = container.append ("rect")
+						.on ("click", this.createCallback ("click"))
+						.on ("mouseover", this.createCallback ("mouseover"));
+					attrs.height = cHeight - attrs.y;
+					this.setElementAttributes (col, attrs);
+					col.classed ("column", true);
+				}
 
 				return attrs;
 			}

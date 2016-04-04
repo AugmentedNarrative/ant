@@ -74,8 +74,9 @@ var asChart = function () {
 		}
 		return function (selector, d) { d3.select (selector).attr ("class", ""); };
 	}
-	this.setElementAttributes = function (element, attrs) {
-		var data;
+	this.setElementAttributes = function (element, oattrs) {
+		//var attrs =  jQuery.extend ({}, oattrs, true), data;
+		var attrs = oattrs, data;
 		if (attrs.data) {
 			data = attrs.data;	
 			attrs.data = null;
