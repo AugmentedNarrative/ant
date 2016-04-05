@@ -78,7 +78,8 @@ var asLines = function () {
 						x: (pointDistance * i) - (pointDistance / 2), 
 						width: pointDistance, 
 						height: pointDistance, 
-						data: rets [i].data
+						data: rets [i].data,
+						"class": rets [i]["class"]
 					};
 					var rect = container.append ("rect")
 						.on ("click", this.createCallback ("click"))
