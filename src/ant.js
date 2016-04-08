@@ -462,6 +462,11 @@ Ant.prototype = {
 		switch (type) {
 			case 'youtube': x = new Popcorn.HTMLYouTubeVideoElement( elm ); break
 			case 'vimeo': x = new Popcorn.HTMLVimeoVideoElement( elm ); break;
+			case 'video': 
+				elm.preload = "auto";
+				var alt = new VideoInLine (elm);
+				if (window.makeVideoPlayableInline !== undefined) { window.makeVideoPlayableInline (elm); } 
+				break;
 			case 'audio': x = "#" + id; break;
 			case 'timer': alt = new Timefy (data.timer_args); break;
 		}
@@ -637,6 +642,50 @@ Timefy.prototype = {
 		for (cb in this.callbacks [ev]) {
 			var x = this.callbacks [ev] [cb];
 			if (x) x (); //TODO check scopes;
+		}
+	}
+}
+function VideoInLine (vid) { 
+	this.init (vid);
+	return this;
+}
+VideoInLine.prototype = {
+	constructor: VideoInLine,
+	_element: null,
+	_tic: -1,
+	init: function (vid) { 
+		this.callbacks = {};
+		this._element = vid;
+		var cb = function (me) { 
+			return function () { 
+				me.callback.apply (me, ["timeupdate"]);	
+			}
+		}
+		this._element.addEventListener ("timeupdate", cb (this))
+	},
+	load: function () { this._element.load (); },
+	play: function () { 
+		this._element.play ();
+	},
+	pause: function () { 
+		this._element.pause ();
+	},
+	stop: function () { 
+		this._element.stop ();
+	},
+	currentTime: function (tic) { if (tic !== undefined) { this._tic = tic; } return this._tic;},
+	muted: function () { 
+	},
+	callbacks: {},
+	on: function (ev, cb) { 
+		if (!this.callbacks [ev]) { this.callbacks [ev] = []; }
+		this.callbacks [ev].push (cb);
+	},
+	callback: function (ev) { 
+		if (!this.callbacks [ev]) return;
+		for (cb in this.callbacks [ev]) {
+			var x = this.callbacks [ev] [cb];
+			if (x) x ();
 		}
 	}
 }
