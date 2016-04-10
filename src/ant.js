@@ -295,6 +295,9 @@ Ant.prototype = {
 				this.slides [data.control_slide].controller.scrollTo (this.slides [data.control_slide].slides [data.scroll_to]);
 			}
 		}
+		if (data.debug) { 
+			console.log (data.debug);
+		}
 		/*
 		* Other elements to parse
 		*/
