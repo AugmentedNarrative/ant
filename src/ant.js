@@ -482,15 +482,15 @@ Ant.prototype = {
 		media.load ();
 		var cb = function (context, obj, elm) { 
 			return function (e) { 
-				var currentSecond = Math.floor (obj.currentTime ());
+				var currentTime = obj.currentTime (), currentSecond = Math.floor (currentTime), millisecond = currentTime - currentSecond, currentMillisecond = Math.floor (millisecond * 10);
+				var parseCb = function (me) { 
+					return function () { 
+						me.parseElement.apply (me, [$(this) [0]]);
+					} 
+				}
 				if (obj.currentSecond != currentSecond) {
 					var every = [1,2,3,4,5,10,15,20,30,40,45,50,55,60];	
 					var trigg = [];
-					var parseCb = function (me) { 
-						return function () { 
-							me.parseElement.apply (me, [$(this) [0]]);
-						} 
-					}
 					for (var i in every) { 
 						if (currentSecond % every [i] === 0) trigg.push (every [i]);
 					}
@@ -499,12 +499,15 @@ Ant.prototype = {
 					}
 					$("[data-subscribe_media='" + elm.id + "'][data-subscribe_time='" + currentSecond + "']").each (parseCb (context));
 					obj.currentSecond = currentSecond;
-
 				}
-
+				$("[data-subscribe_media='" + elm.id + "'][data-subscribe_time='" + currentSecond + "." + currentMillisecond + "']").each (parseCb (context));
 			}
 		}
-		media.on ("timeupdate", cb (this, media, elm));
+		var intervalCb = function (a, media, c, cb) { return function () { media.interval = setInterval.apply (null, [cb (a, media, elm), 100]); } }
+		var removeIntervalCb = function (a,media,c) { return function () { if (media.interval) clearInterval.apply (null, [media.interval]); } }
+		media.on ("play", intervalCb (this, media, elm, cb));
+		media.on ("pause", removeIntervalCb (this,media,elm));
+		//media.on ("timeupdate", cb (this, media, elm));
 		//TODO subscribers for play, stop, etc.
 
 		this.medium [id] = media;
@@ -659,12 +662,6 @@ VideoInLine.prototype = {
 	init: function (vid) { 
 		this.callbacks = {};
 		this._element = vid;
-		var cb = function (me) { 
-			return function () { 
-				me.callback.apply (me, ["timeupdate"]);	
-			}
-		}
-		this._element.addEventListener ("timeupdate", cb (this))
 	},
 	load: function () { this._element.load (); },
 	play: function () { 
@@ -674,15 +671,15 @@ VideoInLine.prototype = {
 		this._element.pause ();
 	},
 	stop: function () { 
-		this._element.stop ();
+		this._element.pause ();
 	},
-	currentTime: function (tic) { if (tic !== undefined) { this._tic = tic; } return this._tic;},
+	currentTime: function (tic) { if (tic !== undefined) { this._element.currentTime = tic; } return this._element.currentTime; },
 	muted: function () { 
 	},
 	callbacks: {},
 	on: function (ev, cb) { 
-		if (!this.callbacks [ev]) { this.callbacks [ev] = []; }
-		this.callbacks [ev].push (cb);
+		//this._element.addEventListener (ev, function (me) { return function () { cb.apply (me, arguments); } } (this));
+		this._element.addEventListener (ev, cb);
 	},
 	callback: function (ev) { 
 		if (!this.callbacks [ev]) return;
