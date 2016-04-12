@@ -19,7 +19,7 @@ Scenify.prototype = {
 		$(this.selector).children ().each ($.proxy (function (index, child) {
 			var sceneElement = $(child);
 			var sceneData = sceneElement.data ();
-			var hook = sceneData.scene_trigger ? sceneData.scene_trigger : 0.15;
+			var hook = sceneData.trigger_position ? sceneData.trigger_position : 0.15;
 			var scene = new ScrollMagic.Scene ({triggerElement: child, tweenChanges: true, duration: sceneElement.height ()})
 					.triggerHook (hook)
 					//.addIndicators ()
