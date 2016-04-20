@@ -1,6 +1,6 @@
 //TODO refactor this.. :)
 ant.charts.map = function (container, width, height) {
-	this.scale = 200000;
+	this.scale = 1;
 	this.translate = [width / 2, height / 2];
 	this.refCenter = [.5, .5];
 	this.translate = [width * this.refCenter [0], height * this.refCenter [1]]; 
@@ -84,7 +84,7 @@ ant.charts.map = function (container, width, height) {
 		this.svg.selectAll (selector).classed (cls, true);
 	}
 	this.zoomTo = function (selector, context) {
-		if (!context) context = this.context 
+		if (!context) context = this.zoomContext 
 		var e = this.svg.selectAll (selector);
 		if (!e) throw "No element found: " + selector;
 		this.zoomSelector = selector;
@@ -92,6 +92,20 @@ ant.charts.map = function (container, width, height) {
 		var path = this.getPath ();
 		var width = this.width;
 		var height = this.height;
+		var bounds = [], dx = [], dy = [], x = [], y = [];
+		var dat = e.data ();
+		for (var i in dat) { 
+			var data = dat [i];
+			var bn = path.bounds (data);
+			bounds.push (bn);
+			dx.push (bn [1][0] - bn [0][0]);
+			dy.push (bn [1][1] - bn [0][1]);
+			x.push ((bn [0][0] + bn [1][0]) / 2);
+			y.push ((bn [0][1] + bn [1][1]) / 2)
+		}
+		var scale = (context / 100) / Math.max (Math.max.apply (null, dx), Math.max.apply (null, dy)),
+			translate = [width * this.refCenter [0] - scale * Math.max.apply (null, x), height * this.refCenter [1] - scale * Math.max.apply (null, y)];
+		/*
 		var bounds = path.bounds(e.datum ()),
 			dx = bounds[1][0] - bounds[0][0],
 			dy = bounds[1][1] - bounds[0][1],
@@ -99,6 +113,7 @@ ant.charts.map = function (container, width, height) {
 			y = (bounds[0][1] + bounds[1][1]) / 2,
 			scale = (context / 100) / Math.max(dx / width, dy / height),
 			translate = [width * this.refCenter [0] - scale * x, height * this.refCenter [1] - scale * y];
+		*/
 
 		this.svg
 			.selectAll ("path")
@@ -121,7 +136,7 @@ ant.charts.map = function (container, width, height) {
 			if (features) {
 				this.svg.append ("g")
 					.attr ("class", topo);
-				this.topologies [topo] = new ant.charts.map.topology (this.svg, topo, this.getPath (), collection, features);
+				this.topologies [topo] = new ant.charts.map.topology (this, topo, collection, features);
 				this.redraw (topo, quantifier, plot);
 
 				return this.topologies [topo];
@@ -134,17 +149,16 @@ ant.charts.map = function (container, width, height) {
 	}
 	return this;
 };
-ant.charts.map.topology = function (cont, name, path, t, f) {
-	this.container = cont;
+ant.charts.map.topology = function (map,name, t, f) {
+	this.parentMap = map;
 	this.name = name;
 	this.topology = t;
 	this.features = f;
-	this.path = path;
 	this.redraw = function (setId, quantifier, plot) {
 		this.callbacks = {};
 		if (!plot) plot = "lines";
-		this.container.select ("g." + this.name).selectAll ("text").remove ();
-		var path = this.path;
+		this.parentMap.svg.select ("g." + this.name).selectAll ("text").remove ();
+		var path = this.parentMap.getPath ();
 		
 		var qn = quantifier ? $.proxy (
 				function (selector, d, plot) {  
@@ -178,10 +192,10 @@ ant.charts.map.topology = function (cont, name, path, t, f) {
 						}
 					}
 				},
-			quantifier) : function (selector, d) { selector.attr ("class", ""); };
+			quantifier) : function (selector, d) { };
 
 		if (plot == "lines") {
-			this.container.select ("g." + this.name).selectAll ("path")
+			this.parentMap.svg.select ("g." + this.name).selectAll ("path")
 				.data (topojson.feature (this.topology, this.features).features)
 				.each (function (d) { qn (d3.select (this), d, plot); })
 				.attr ("id", setId)
@@ -193,7 +207,7 @@ ant.charts.map.topology = function (cont, name, path, t, f) {
 				.on ("mouseout", this.createCallback ("mouseout"))
 		}
 		if (plot == "points") {
-			this.container.select ("g." + this.name).selectAll ("circle")
+			this.parentMap.svg.select ("g." + this.name).selectAll ("circle")
 				.data (topojson.feature (this.topology, this.features).features)
 				.each (function (d) { qn (d3.select (this), d, plot); }) 
 				.attr ("id", setId)

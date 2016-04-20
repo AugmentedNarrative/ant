@@ -358,6 +358,9 @@ Ant.prototype = {
 		}
 		var zoomTo = data.zoom_to;
 		var zoomLevel = data.zoom_level; 
+		if (data.map_center_lat && data.map_center_lon) { 
+			this.charts [controlChart].setCenter ({lat: data.map_center_lat, lon: data.map_center_lon});
+		}
 		if (zoomTo) {
 			this.charts [controlChart].zoomTo (zoomTo, zoomLevel);
 		} else if (zoomLevel) {
@@ -524,7 +527,7 @@ Ant.prototype = {
 			var obj;
 			if (dChart == "map") {
 				obj  = new ant.charts.map ("#" + id, $(element).width (), $(element).height ());
-				obj.setCenter ({lat: data.map_center_lat, lon: data.map_center_lon});
+			//	obj.setCenter ({lat: data.map_center_lat, lon: data.map_center_lon});
 				// TODO fix this following lines: the layers should be drawn by the quantifier.
 				if (data.map_layers) { 
 					var layers = data.map_layers.split (',');
@@ -532,7 +535,7 @@ Ant.prototype = {
 						var l = this.conf.data [layers [a]];
 						var plot = l.plot ? l.plot : "lines";
 						var topo = obj.addFeatures (l.id, this.data [l.id], l.key); 
-						topo.redraw (this.setFeatureId (l), null, plot)
+						//topo.redraw (this.setFeatureId (l), null, plot)
 					}
 				}
 				this.charts [id] = obj;
