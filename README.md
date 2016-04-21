@@ -34,7 +34,7 @@ And it all starts there. There are many, many, options and features.
 
 ##Demos
 - [A world's population explorer](http://augmentednarrative.github.io)
-- [Visualizing Boston's Police Department drug investigations and arrests](http:://warondrugs.justicesos.org/)
+- [Visualizing Boston's Police Department drug investigations and arrests](http://warondrugs.justicesos.org/)
 - [Mexico City's air quality dashboard](http://pa-w.github.io/airecdmx)
 
 The tools/libraries it integrates are:
