@@ -353,7 +353,7 @@ Ant.prototype = {
 		if (data.clear) {
 			var layers = data.clear.split(',');
 			for (var l in layers) {
-				this.quantifyMap (controlChart, layers [l.trim()]);
+				this.quantifyMap (controlChart, layers [l.trim()], {fn: function () { return {"class": ""} } });
 			}
 		}
 		var zoomTo = data.zoom_to;
@@ -406,7 +406,7 @@ Ant.prototype = {
 			var q = quantifier ? this.conf.quantifiers ["maps"] [quantifier.fn] : null;
 		}
 		var l = this.conf.data [layer];
-		if (!q && quantifier) throw "No quantifier found: " + quantifier.fn;
+		if (!q && quantifier) q = quantifier.fn; 
 		if (!l) throw "No data found: " + layer;
 
 		var qn = quantifier ? {fn: q, context: this, args: quantifier.ar, data: quantifier.data} : null;
@@ -535,7 +535,8 @@ Ant.prototype = {
 						var l = this.conf.data [layers [a]];
 						var plot = l.plot ? l.plot : "lines";
 						var topo = obj.addFeatures (l.id, this.data [l.id], l.key); 
-						//topo.redraw (this.setFeatureId (l), null, plot)
+						// TODO FIX THIS.. it is needed for when using points layers.
+						topo.redraw (this.setFeatureId (l), null, plot)
 					}
 				}
 				this.charts [id] = obj;

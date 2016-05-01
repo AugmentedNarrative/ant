@@ -84,6 +84,7 @@ ant.charts.map = function (container, width, height) {
 		this.svg.selectAll (selector).classed (cls, true);
 	}
 	this.zoomTo = function (selector, context) {
+		console.log ("will zoom to " + selector);
 		if (!context) context = this.zoomContext 
 		var e = this.svg.selectAll (selector);
 		if (!e) throw "No element found: " + selector;
@@ -93,27 +94,32 @@ ant.charts.map = function (container, width, height) {
 		var width = this.width;
 		var height = this.height;
 		var bounds = [], dx = [], dy = [], x = [], y = [];
+		var bleft = [], bright = [], btop = [], bbottom = [];
 		var dat = e.data ();
 		for (var i in dat) { 
 			var data = dat [i];
 			var bn = path.bounds (data);
 			bounds.push (bn);
-			dx.push (bn [1][0] - bn [0][0]);
-			dy.push (bn [1][1] - bn [0][1]);
-			x.push ((bn [0][0] + bn [1][0]) / 2);
-			y.push ((bn [0][1] + bn [1][1]) / 2)
+			bleft.push (bn [0] [0]);
+			btop.push (bn [0] [1]);
+			bright.push (bn [1] [0]);
+			bbottom.push (bn [1] [1]);
 		}
-		var scale = (context / 100) / Math.max (Math.max.apply (null, dx), Math.max.apply (null, dy)),
-			translate = [width * this.refCenter [0] - scale * Math.max.apply (null, x), height * this.refCenter [1] - scale * Math.max.apply (null, y)];
+		var minLeft = Math.min.apply (null, bleft), maxRight = Math.max.apply (null, bright), 
+			minTop = Math.min.apply (null, btop), maxBottom = Math.max.apply (null, bbottom),
+			height = maxBottom - minTop, width = maxRight - minLeft; 
+
+		this.svg.attr ({"viewBox": minLeft + " " + minTop + " " + width + " " + height});
+
 		/*
-		var bounds = path.bounds(e.datum ()),
-			dx = bounds[1][0] - bounds[0][0],
-			dy = bounds[1][1] - bounds[0][1],
-			x = (bounds[0][0] + bounds[1][0]) / 2,
-			y = (bounds[0][1] + bounds[1][1]) / 2,
-			scale = (context / 100) / Math.max(dx / width, dy / height),
-			translate = [width * this.refCenter [0] - scale * x, height * this.refCenter [1] - scale * y];
-		*/
+		var scale = (context / 100) / Math.max (Math.max.apply (null, dx), Math.max.apply (null, dy)),
+			scale = 1,
+			translate = [width * this.refCenter [0] * Math.max.apply (null, x), height * this.refCenter [1] * Math.max.apply (null, y)];
+		scale = 1000;
+		console.log (scale);
+		console.log (dat);
+		console.log (Math.max.apply (null, dx));
+		console.log (translate);
 
 		this.svg
 			.selectAll ("path")
@@ -127,6 +133,7 @@ ant.charts.map = function (container, width, height) {
 			.selectAll ("circle")
 			.attr ("vector-effect", "non-scaling-stroke")
 			.attr ("transform", "translate(" + translate + ")scale(" + scale + ")")
+		*/
 	}
 	this.addFeatures = function (topo, collection, key, quantifier, plot) {
 		if (!plot) plot = "lines"
