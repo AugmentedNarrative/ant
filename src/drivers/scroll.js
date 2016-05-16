@@ -16,10 +16,12 @@ function Scenify (selector) {
 Scenify.prototype = {
 	constructor: Scenify,
 	init: function () {
+		var data = $(this.selector).data ();
+		var defaultPosition = data.trigger_position ? data.trigger_position : 0.15;
 		$(this.selector).children ().each ($.proxy (function (index, child) {
 			var sceneElement = $(child);
 			var sceneData = sceneElement.data ();
-			var hook = sceneData.trigger_position ? sceneData.trigger_position : 0.15;
+			var hook = sceneData.trigger_position ? sceneData.trigger_position : defaultPosition;
 			var scene = new ScrollMagic.Scene ({triggerElement: child, tweenChanges: true, duration: sceneElement.height ()})
 					.triggerHook (hook)
 					//.addIndicators ()
@@ -30,7 +32,6 @@ Scenify.prototype = {
 			scene.on ("leave", $.proxy (this.leaveCallback, this));
 			scene.on ("progress", $.proxy (this.progressCallback, this));
 			this.scenes [sceneElement.attr ('id')] = scene;
-			//TODO this adds the scenes by id, make it so that we can access it by index too (for 'next' and 'prev' purposes) 
 
 		}, this));
 		return this;

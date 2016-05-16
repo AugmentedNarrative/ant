@@ -76,6 +76,12 @@ Ant.prototype = {
 				}
 			}
 			this.initCharts ();
+			cb = function (me) { 
+				return function (a) {
+					me.parseElement.apply (me, [this]);
+				}
+			}
+			$("[data-onload]").each (cb (this));
 		}
 	},
 	/*
@@ -225,9 +231,10 @@ Ant.prototype = {
 			if (data.element_hide !== undefined) { s.hide (); }
 			if (data.element_show !== undefined) { s.show (); }
 			if (data.element_toggle !== undefined) { s.toggle (); }
-			if (data.element_attrs) { s.attr (data.element_attrs); 
+			if (data.element_attrs) { 
+				//s.attr (data.element_attrs); 
 				if (data.element_attrs === Object (data.element_attrs)) { 
-					data.element_attrs = JSON.stringify (val);
+					data.element_attrs = Object (data.element_attrs);
 					s.attr (data.element_attrs);
 				}
 			}
@@ -252,7 +259,7 @@ Ant.prototype = {
 		if (data.hide !== undefined) {
 			if (data.hide == "") { 
 				$(element).hide (); $(element).css ("visibility", "hidden"); 
-			} else { 
+			} else if (data.hide.split) { 
 				var x = data.hide.split (",");
 				for (var d in x) { 
 					$("#" + x [d]).hide (); 
@@ -264,7 +271,7 @@ Ant.prototype = {
 			if (data.show == "") { 
 				$(element).show (); 
 				$(element).css ("visibility", "visible"); 
-			} else { 
+			} else if (data.hide.show) { 
 				var x = data.show.split (",");
 				for (var d in x) { 
 					$("#" + x [d]).show (); 
@@ -299,6 +306,37 @@ Ant.prototype = {
 			console.log (data.debug);
 		}
 		/*
+		* Data download and parsing
+		*/
+		if (data.download) {
+			if (data.download_id && this.data [data.download_id]) { 
+				if (data.download_parse) {
+					var me = this;
+					$(data.download_parse).each (function () { me.parseElement.apply (me, [$(this) [0]]); });
+				}
+			} else {
+				var q = queue ();
+				var type = d3 [data.type ? data.type : "csv"];
+				if (!type) type = d3.csv;
+
+				q.defer (type, data.download)
+				q.await ($.proxy (function (err, d) { 
+					if ( this.conf.callbacks && data.download_processor && this.conf.callbacks [data.download_processor]) {
+						d = this.conf.callbacks [data.download_processor].apply (this, [d]); 
+					} else if (data.download_processor) {
+						console.log ("callback not found in config: " + data.download_processor);
+					}
+					this.data [data.download_id] = d; 
+
+					if (data.download_parse) {
+						var me = this;
+						$(data.download_parse).each (function () { me.parseElement.apply (me, [$(this) [0]]); });
+					}
+				}, this));
+			}
+			
+		}
+		/*
 		* Other elements to parse
 		*/
 		if (data.parse) { 
@@ -310,13 +348,16 @@ Ant.prototype = {
 			else {
 				var me = this;
 				$(data.parse).each (function () { me.parseElement.apply (me, [$(this) [0]], false); });
-				/*
-				var x = data.parse.split (",");
-				for (var e in x) { 
-					this.parseElement ("#" + x[e].trim (), false);
-				}
-				*/
-
+			}
+		}
+		/*
+		* This is a comma separated value and each of the elements will be treated as an independent selector and parsed in sequence
+		*/
+		if (data.parse_sequence) {
+			var x = data.parse_sequence.split (",");
+			var me = this;
+			for (var e in x) {
+				$(x[e]).each  (function () { me.parseElement.apply (me, [$(this) [0]], false); });
 			}
 		}
 		/*
@@ -444,7 +485,13 @@ Ant.prototype = {
 		//TODO check if this is redundant from the method above
 		$("select[data-control]").change ({me: this},
 			function (a) {
-				a.data.me.parseElement.apply (a.data.me, [$(this).children (":selected")]);
+				var sel = this;
+				for (var i = 0; i < sel.options.length; i++) {
+					if (sel.options [i].selected) {
+						a.data.me.parseElement.apply (a.data.me, [sel [i]]);
+					}
+				}
+				//a.data.me.parseElement.apply (a.data.me, [$(this).children (":selected")]);
 			}
 		)
 		$("a[data-control]").click ({me: this}, 

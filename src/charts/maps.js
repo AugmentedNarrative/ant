@@ -84,7 +84,6 @@ ant.charts.map = function (container, width, height) {
 		this.svg.selectAll (selector).classed (cls, true);
 	}
 	this.zoomTo = function (selector, context) {
-		console.log ("will zoom to " + selector);
 		if (!context) context = this.zoomContext 
 		var e = this.svg.selectAll (selector);
 		if (!e) throw "No element found: " + selector;
@@ -111,29 +110,6 @@ ant.charts.map = function (container, width, height) {
 
 		this.svg.attr ({"viewBox": minLeft + " " + minTop + " " + width + " " + height});
 
-		/*
-		var scale = (context / 100) / Math.max (Math.max.apply (null, dx), Math.max.apply (null, dy)),
-			scale = 1,
-			translate = [width * this.refCenter [0] * Math.max.apply (null, x), height * this.refCenter [1] * Math.max.apply (null, y)];
-		scale = 1000;
-		console.log (scale);
-		console.log (dat);
-		console.log (Math.max.apply (null, dx));
-		console.log (translate);
-
-		this.svg
-			.selectAll ("path")
-			.attr ("vector-effect", "non-scaling-stroke")
-			.attr ("transform", "translate(" + translate + ")scale(" + scale + ")");
-		this.svg
-			.selectAll ("text")
-			.attr ("vector-effect", "non-scaling-stroke")
-			.attr ("transform", "translate(" + translate + ")scale(" + scale + ")");
-		this.svg
-			.selectAll ("circle")
-			.attr ("vector-effect", "non-scaling-stroke")
-			.attr ("transform", "translate(" + translate + ")scale(" + scale + ")")
-		*/
 	}
 	this.addFeatures = function (topo, collection, key, quantifier, plot) {
 		if (!plot) plot = "lines"
@@ -166,6 +142,7 @@ ant.charts.map.topology = function (map,name, t, f) {
 		if (!plot) plot = "lines";
 		this.parentMap.svg.select ("g." + this.name).selectAll ("text").remove ();
 		var path = this.parentMap.getPath ();
+		var parentSvg = this.parentMap.svg;
 		
 		var qn = quantifier ? $.proxy (
 				function (selector, d, plot) {  
@@ -176,12 +153,7 @@ ant.charts.map.topology = function (map,name, t, f) {
 							attrs.cy = path.centroid (d) [1];
 						}
 						if (attrs.text) {
-							var xs = {"x": path.centroid (d)[0], "y": path.centroid (d)[1]};
-							d3.select (selector.parentNode)
-								.append ("svg:text")
-								.attr (xs)
-								.attr (attrs)
-								.text (attrs.text);
+							//TODO add <text> to centroid.
 						}
 						// This section adds the data-* attributes returned from the quantifier to the element...!!! 
 						// This allows the cascading of visualizations
