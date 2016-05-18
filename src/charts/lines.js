@@ -67,7 +67,7 @@ var asLines = function () {
 					var rect = container.append ("rect")
 						.on ("click", this.createCallback ("click"))
 						.on ("mouseover", this.createCallback ("mouseover"));
-					this.setElementAttributes (rect, {y: attrs.y, x: attrs.x, width: attrs.width, height: attrs.height, data: attrs.data});
+					this.setElementAttributes (rect, {y: rets [i].y, x: rets [i].x, width: rets [i].width, height: rets [i].height, data: rets [i].data});
 					rect.classed ("square", true);
 
 					var col = container.append ("rect")
@@ -80,7 +80,7 @@ var asLines = function () {
 					var circle = container.insert ("circle")
 						.on ("click", this.createCallback ("click"))
 						.on ("mouseover", this.createCallback ("mouseover"));
-					this.setElementAttributes (circle, {"class": rets [i]["class"], cx: rets [i].x, cy: rets [i].y, r: rets [i].r});
+					this.setElementAttributes (circle, {"class": rets [i]["class"], cx: rets [i].x, cy: rets [i].y, r: rets [i].r, data: rets [i].data});
 					if (rets [i].value) {
 						var text = container.append("text").text (rets [i].value);
 						this.setElementAttributes (text, {"class": rets [i]["class"], x: rets [i].x, y: rets [i].y});

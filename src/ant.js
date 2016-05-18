@@ -336,7 +336,7 @@ Ant.prototype = {
 								});
 					}
 					if (this.conf.callbacks && data.download_processor && this.conf.callbacks [data.download_processor]) {
-						d = this.conf.callbacks [data.download_processor].apply (this, [d]); 
+						d = this.conf.callbacks [data.download_processor].apply (this, [d, data.download_id]); 
 					} else if (data.download_processor) {
 						console.log ("callback not found in config: " + data.download_processor);
 					}
