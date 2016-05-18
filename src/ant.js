@@ -170,7 +170,7 @@ Ant.prototype = {
 			if (quantify && quantifier) {
 				var qObj = {fn: quantifier, ar: qArgs};
 				try {
-					qObj.data = this.prequantify (this.data [quantify], qObj);
+					qObj.data = this.prequantify (qObj);
 					if (!qObj.data) qObj.data = this.data [quantify];
 					if (chartType == "lines" || chartType == "bars" || chartType == "pie") {
 						this.quantifyChart (controlChart, qObj);
@@ -321,7 +321,21 @@ Ant.prototype = {
 
 				q.defer (type, data.download)
 				q.await ($.proxy (function (err, d) { 
-					if ( this.conf.callbacks && data.download_processor && this.conf.callbacks [data.download_processor]) {
+					if (data.download_clone && data.download_clone_into) {
+						var me = this, cont = d3.select (data.download_clone_into);
+						var sel = cont.selectAll (data.download_clone) 
+								.data (d)
+								.enter ().append (data.download_clone)
+								.each (function (dt, idx) { 
+									var fn = me.conf.callbacks [data.download_clone_callback]
+									if (fn) { 
+										fn.apply (me, [this, dt, idx, d.length ? d.length : -1]); 
+									} else {
+										console.log ("No callback on download: " + data.download_clone_callback); 
+									}
+								});
+					}
+					if (this.conf.callbacks && data.download_processor && this.conf.callbacks [data.download_processor]) {
 						d = this.conf.callbacks [data.download_processor].apply (this, [d]); 
 					} else if (data.download_processor) {
 						console.log ("callback not found in config: " + data.download_processor);
@@ -364,8 +378,7 @@ Ant.prototype = {
 		* IMPORTANT! DO not put any more code here as we need to make sure that the other elements are parsed after everything else, to avoid weird behaviour. 
 		*/
 	},
-	prequantify: function (data, quantifier) {
-		if (!data) throw "No data... " + quantifier;
+	prequantify: function (quantifier) {
 		if (this.conf.prequantifiers) {
 			var pq = quantifier ? this.conf.prequantifiers [quantifier.fn] : null;
 			if (pq) { 
