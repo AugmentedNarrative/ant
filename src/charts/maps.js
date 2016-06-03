@@ -111,6 +111,24 @@ ant.charts.map = function (container, width, height) {
 		this.svg.attr ({"viewBox": minLeft + " " + minTop + " " + width + " " + height});
 
 	}
+	this.addElement = function (tag, attrs) {
+		var element = this.svg.append (tag); 
+		element
+			.on ("click", this.createCallback ("click"))
+			.on ("mouseover", this.createCallback ("mouseover"));
+		var data = attrs.data;
+		attrs.data = null;
+		element.attr (attrs);
+		if (data) { 
+			for (var d in data) { 
+				var val = data [d];
+				if (val === Object (val)) { 
+					val = JSON.stringify (val);
+				}
+				element.attr ("data-" + d, val);
+			}
+		}
+	}
 	this.addFeatures = function (topo, collection, key, quantifier, plot) {
 		if (!plot) plot = "lines"
 		if (this.topologies [topo]) throw "A topology " + topo + " already exists.";
@@ -128,6 +146,47 @@ ant.charts.map = function (container, width, height) {
 			}
 		} else {
 			throw "Empty features collections? " + topo;
+		}
+	}
+	/*
+	* Duplicated code. TODO: refactor this:
+	* TODO: Fix inheritance
+	* TODO: refactor code
+	*/
+	this.createCallback = function (type) {
+		var me = this;
+		return function () {
+			console.log ("aquitoy");
+			var args = [];
+			for (var a in arguments) {
+				args.push (arguments [a]);
+			}
+			args.push (this);
+			me.callback.apply (me, [type, args]);
+		}
+	}
+	this.callbacks = {};
+	this.on = function (ev, cb, scope) {
+		if (!this.callbacks [ev]) {
+			this.callbacks [ev] = [];
+		}
+		if (!scope) { scope = this; }
+		this.callbacks [ev].push ({ scope: scope, callback: cb});	
+	}
+	this.removeCallback = function (ev, cb) {
+		for (var x in this.callbacks [ev]) {
+			if (this.callbacks [ev] [x].callback == cb) {
+				this.callbacks [ev].splice (x, 1);
+			}
+		}
+	}
+	this.callback = function (ev, args) {
+		if (!this.callbacks [ev]) return;
+		for (cb in this.callbacks [ev]) {
+			if (cb) { 
+				var x = this.callbacks [ev][cb];	
+				x.callback.apply (x.scope, args); 
+			}
 		}
 	}
 	return this;

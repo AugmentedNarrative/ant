@@ -75,14 +75,14 @@ Ant.prototype = {
 					this.data [dataName] = data;
 				}
 			}
-			this.initCharts ();
-			cb = function (me) { 
-				return function (a) {
-					me.parseElement.apply (me, [this]);
-				}
-			}
-			$("[data-onload]").each (cb (this));
 		}
+		var cb = function (me) { 
+			return function (a) {
+				me.parseElement.apply (me, [this]);
+			}
+		}
+		$("[data-onload]").each (cb (this));
+		this.initCharts ();
 	},
 	/*
 	* scrollProgress.
@@ -196,7 +196,6 @@ Ant.prototype = {
 		if (data.control_media) { 
 			var m = this.medium [data.control_media];
 			if (m) { 
-				m.play (); m.pause ();  //this has to be done this way so popcornjs starts counting...
 				if (data.media_play !== undefined) { 
 					m.play ();
 					m.muted (false);
@@ -226,6 +225,7 @@ Ant.prototype = {
 		*/
 		if (data.control_element) {
 			var s = $(data.control_element);
+			if (data.element_text) { s.text (data.element_text); }
 			if (data.element_add_class) { s.addClass (data.element_add_class); }
 			if (data.element_remove_class) { s.removeClass (data.element_remove_class); }
 			if (data.element_hide !== undefined) { s.hide (); }
@@ -238,7 +238,6 @@ Ant.prototype = {
 					s.attr (data.element_attrs);
 				}
 			}
-			if (data.text) { s.text (data.text); }
 		}
 		/*
 		* Callback
@@ -250,6 +249,7 @@ Ant.prototype = {
 					cb.apply (this, [data.callback_args]);
 				} catch (e) { 
 					console.log ("error in callback: " + e);
+					console.log (e.stack);
 				}
 			}
 		}
@@ -321,6 +321,9 @@ Ant.prototype = {
 
 				q.defer (type, data.download)
 				q.await ($.proxy (function (err, d) { 
+					if (this.conf.callbacks && data.download_processor && this.conf.callbacks [data.download_processor]) {
+						d = this.conf.callbacks [data.download_processor].apply (this, [d, data.download_id]); 
+					}
 					if (data.download_clone && data.download_clone_into) {
 						var me = this, cont = d3.select (data.download_clone_into);
 						var sel = cont.selectAll (data.download_clone) 
@@ -333,12 +336,8 @@ Ant.prototype = {
 									} else {
 										console.log ("No callback on download: " + data.download_clone_callback); 
 									}
+									d3.select (this).on ("click", function () { console.log ("hey"); }, this);
 								});
-					}
-					if (this.conf.callbacks && data.download_processor && this.conf.callbacks [data.download_processor]) {
-						d = this.conf.callbacks [data.download_processor].apply (this, [d, data.download_id]); 
-					} else if (data.download_processor) {
-						console.log ("callback not found in config: " + data.download_processor);
 					}
 					this.data [data.download_id] = d; 
 
@@ -570,6 +569,7 @@ Ant.prototype = {
 		var removeIntervalCb = function (a,media,c) { return function () { if (media.interval) clearInterval.apply (null, [media.interval]); } }
 		media.on ("play", intervalCb (this, media, elm, cb));
 		media.on ("pause", removeIntervalCb (this,media,elm));
+		media.play (); media.pause ();
 		//media.on ("timeupdate", cb (this, media, elm));
 		//TODO subscribers for play, stop, etc.
 
@@ -600,6 +600,8 @@ Ant.prototype = {
 					}
 				}
 				this.charts [id] = obj;
+				this.charts [id].on ("click", function (a, id, x, el) { this.parseElement (el); }, this); 
+				this.charts [id].on ("mouseover", function (a, id, x, el) { this.parseElement (el); }, this); 
 				this.parseElement ("#" + id);
 			}
 			if (dChart == "bars" || dChart == "lines" || dChart == "pie") { 
@@ -688,18 +690,21 @@ Timefy.prototype = {
 	play: function () {
 		this.paused (false);
 		if (!this._interval) { 
-			var cb = function (me) { return function () { if (!me.paused.apply (me)) { me._tic++; me.callback.apply (me, ["timeupdate"]); } }} 
-			this._interval = setInterval (cb (this), 1000);	
+			var cb = function (me) { return function () { if (!me.paused.apply (me)) {  me._tic+=100; me.callback.apply (me, ["timeupdate"]); } }} 
+			this._interval = setInterval (cb (this), 100);	
 		}
+		this.callback ("play");
 	},
-	currentTime: function (tic) { if (tic !== undefined) { this._tic = tic; } return this._tic;},
+	currentTime: function (tic) { if (tic !== undefined) { this._tic = tic; } return this._tic / 1000;},
 	muted: function () {},
 	pause: function () {  
 		if (!this.paused ()) this.paused (true);
+		this.callback ("pause");
 	},
 	paused: function (paused) { if (paused !== undefined) { this._paused = paused; } return this._paused },
 	stop: function () {
 		clearInterval (this._interval);
+		this.callback ("pause");
 		this.init ();
 	},
 	callbacks: {},

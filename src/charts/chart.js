@@ -4,31 +4,17 @@ function Chart (container, conf) {
 var asChart = function () {
 	this.updateSize = function () { 
 		var rect = this.container.node ().getBoundingClientRect ();
-		this.width = rect.width - this.margin.left - this.margin.right;
+		//console.log (rect.width - this.margin.left - this.margin.right);
+		this.width = parseInt(rect.width)-parseInt(this.margin.left)-parseInt(this.margin.right);
 		this.height = rect.height - this.margin.top - this.margin.bottom; 
 		this.svg.attr ({"width": this.width + this.margin.left + this.margin.right, "height": this.height + this.margin.top + this.margin.bottom})
 			.attr ("transform", "translate(" + this.margin.left + "," + this.margin.top + ")")
-	}
-	this.drawAxes = function (yScale) { 
-		var yAxis = d3.svg.axis ()
-				.scale (yScale)
-				.orient ("right")
-				.tickSize (this.width); 
-
-		this.svg.selectAll ("g.axis").remove();
-		var gy = this.svg.append ("g")
-			.attr ("class", "y axis")
-			.attr ("transform", "translate (0, " + this.margin.top + ")")
-			.call (yAxis);
-
-		gy.selectAll("text")
-			.attr("x", 0)
-			.attr("dy", -4);
+		console.log (this.width + " x " + this.height);
 	}
 	this.quantifierCallback = function (quantifier, callback, innerCallback) {
 		if (quantifier) {
 			// this generates a callback that gives us the chance to edit every attribute in the chart element, and edit it with the users' values (class, degrees, x, y, etc).
-			return function (selector, a, i) {  
+			return function (selector, a, i, args) {  
 				var qn = quantifier, attrs;
 				if (Array.isArray(a)) { //no objects please, only arrays.
 					var rets = [];
@@ -42,7 +28,7 @@ var asChart = function () {
 						fns.push (a [i]);
 					}
 					for (var x in fns) { 
-						var ret = qn.fn.apply (qn.context, [fns [x], qn.args, qn.data]); //calls the users' callback for every item. 
+						var ret = qn.fn.apply (qn.context, [fns [x], qn.args, qn.data, args]); //calls the users' callback for every item. 
 						if (innerCallback) { 
 							ret = innerCallback.apply (this, [ret]); // calls charts' "inner" callback with users' input.
 						}
@@ -77,11 +63,13 @@ var asChart = function () {
 	this.setElementAttributes = function (element, oattrs) {
 		//var attrs =  jQuery.extend ({}, oattrs, true), data;
 		var attrs = oattrs, data;
-		if (attrs.data) {
-			data = attrs.data;	
-			attrs.data = null;
+		if (attrs) { 
+			if (attrs.data) {
+				data = attrs.data;	
+				attrs.data = null;
+			}
+			element.attr (attrs);
 		}
-		element.attr (attrs);
 		if (data) { 
 			for (var d in data) { 
 				var val = data [d];
@@ -95,7 +83,7 @@ var asChart = function () {
 	this.init = function (container, conf) {
 		this.conf = conf;
 		this.container = d3.select ("#" + container);
-		this.margin = conf.margin ? conf.margin : {top: 0, right: 0, bottom: 0, left: 0};
+		this.margin = conf.margin ? conf.margin : {top: 10, right: 20, bottom: 10, left: 20};
 		this.svg = this.container.append ("svg");
 		this.updateSize ();
 
