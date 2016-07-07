@@ -40,7 +40,7 @@ Nestify.prototype = {
 				return obj; 
 			}
 		);
-		n = n.map (data);
+		n = n.object (data);
 		var summarize = function (leaf, key) {
 			if (leaf) {
 				var length = 0;

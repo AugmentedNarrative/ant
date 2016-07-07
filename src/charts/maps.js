@@ -13,7 +13,7 @@ ant.charts.map = function (container, width, height) {
 	this.rateById = d3.map ();
 	this.svg = d3.select (container).append ("svg").attr ("width", width).attr ("height", height); 
 	this.topologies = {};
-	this.projection = d3.geo.mercator ();
+	this.projection = d3.geoMercator ();
 	this.redraw = function (topo, quantifier, plot) {
 		if (!topo) {
 			for (t in this.topologies) {
@@ -45,10 +45,7 @@ ant.charts.map = function (container, width, height) {
 			.center ([0, this.center.lat])
 			.translate (this.translate);
 
-		return d3.geo.path ().projection (this.projection);
-	}
-	this.getArc = function () {
-		return d3.geo.greatArc().precision(3);
+		return d3.geoPath ().projection (this.projection);
 	}
 	/*
 	this.lineConnectElements = function (elmA, elmB) {
@@ -108,7 +105,7 @@ ant.charts.map = function (container, width, height) {
 			minTop = Math.min.apply (null, btop), maxBottom = Math.max.apply (null, bbottom),
 			height = maxBottom - minTop, width = maxRight - minLeft; 
 
-		this.svg.attr ({"viewBox": minLeft + " " + minTop + " " + width + " " + height});
+		this.svg.attrs ({"viewBox": minLeft + " " + minTop + " " + width + " " + height});
 
 	}
 	this.addElement = function (tag, attrs) {
@@ -118,7 +115,7 @@ ant.charts.map = function (container, width, height) {
 			.on ("mouseover", this.createCallback ("mouseover"));
 		var data = attrs.data;
 		attrs.data = null;
-		element.attr (attrs);
+		element.attrs (attrs);
 		if (data) { 
 			for (var d in data) { 
 				var val = data [d];
@@ -218,7 +215,7 @@ ant.charts.map.topology = function (map,name, t, f) {
 						// This allows the cascading of visualizations
 						var data = attrs.data;
 						attrs.data = null;
-						selector.attr (attrs);
+						selector.attrs (attrs);
 						if (data) { 
 							for (var d in data) { 
 								var val = data [d];

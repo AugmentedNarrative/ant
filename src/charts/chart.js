@@ -1,15 +1,22 @@
 function Chart (container, conf) {
+	this.init ();
 	return this;
 }
 var asChart = function () {
 	this.updateSize = function () { 
-		var rect = this.container.node ().getBoundingClientRect ();
 		//console.log (rect.width - this.margin.left - this.margin.right);
+		this.svg.attrs ({"width": "100%", "height": "100%"})
+		var rect = this.container.node ().getBoundingClientRect ();
+
+		this.realSvg = this.svg;
+		this.realWidth = rect.width; 
+		this.realHeight = rect.height;
+		this.svg = this.svg.append ("g")
+			.attr ("transform", "translate(" + this.margin.left + "," + this.margin.top + ")")
+
+
 		this.width = parseInt(rect.width)-parseInt(this.margin.left)-parseInt(this.margin.right);
 		this.height = rect.height - this.margin.top - this.margin.bottom; 
-		this.svg.attr ({"width": this.width + this.margin.left + this.margin.right, "height": this.height + this.margin.top + this.margin.bottom})
-			.attr ("transform", "translate(" + this.margin.left + "," + this.margin.top + ")")
-		console.log (this.width + " x " + this.height);
 	}
 	this.quantifierCallback = function (quantifier, callback, innerCallback) {
 		if (quantifier) {
@@ -42,20 +49,6 @@ var asChart = function () {
 					attrs = qn.fn.apply (qn.context [a, qn.args, qn.data]);
 				}
 				this.setElementAttributes (selector, attrs);
-				/*
-				var data = attrs.data;
-				attrs.data = null;
-				d3.select (selector).attr (attrs);
-				if (data) { 
-					for (var d in data) { 
-						var val = data [d];
-						if (val === Object (val)) {
-							val = JSON.stringify (val);
-						}
-						d3.select (selector).attr ("data-" + d, val);
-					}
-				}
-				*/
 			}
 		}
 		return function (selector, d) { d3.select (selector).attr ("class", ""); };
@@ -64,11 +57,12 @@ var asChart = function () {
 		//var attrs =  jQuery.extend ({}, oattrs, true), data;
 		var attrs = oattrs, data;
 		if (attrs) { 
+			if (attrs.height < 0) attrs.height = 0;
 			if (attrs.data) {
 				data = attrs.data;	
 				attrs.data = null;
 			}
-			element.attr (attrs);
+			element.attrs (attrs);
 		}
 		if (data) { 
 			for (var d in data) { 
@@ -95,15 +89,22 @@ var asChart = function () {
 	this.removeClass = function (sel, cls) { 
 		this.svg.selectAll (sel).classed (cls, false);
 	}
+	this.createEmptyCallback = function (type) {
+		return function () {
+			d3.event.stopPropagation ();
+		}
+	}
 	this.createCallback = function (type) {
 		var me = this;
 		return function () {
+			d3.event.stopPropagation ();
 			var args = [];
 			for (var a in arguments) {
 				args.push (arguments [a]);
 			}
 			args.push (this);
 			me.callback.apply (me, [type, args]);
+
 		}
 	}
 	this.callbacks = {};

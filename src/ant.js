@@ -349,6 +349,10 @@ Ant.prototype = {
 			}
 			
 		}
+		/* data process */
+		if (data.process) { 
+			
+		}
 		/*
 		* Other elements to parse
 		*/
@@ -506,12 +510,26 @@ Ant.prototype = {
 				//a.data.me.parseElement.apply (a.data.me, [$(this).children (":selected")]);
 			}
 		)
-		$("a[data-control]").click ({me: this}, 
-			function (a) { 
-				var x = a.data.me;
-				x.parseElement.apply (x, [this]);
+		var evcb = function (ev) { 
+			return function (a) { 
+				var mo = $(this).data () [ev];
+				if (mo) { 
+					var cb = function (ant) { 
+						return function () { 
+							ant.parseElement.apply (ant, [this]);	
+						}
+					}
+					$(mo).each (cb (a.data.me));
+				} else {
+					var x = a.data.me;
+					x.parseElement.apply (x, [this]);
+				}
 			}
-		);
+		}
+		$("[data-mouseover]").mouseover ({me: this}, evcb ("mouseover"))
+		$("[data-mouseout]").mouseout ({me: this}, evcb ("mouseout"))
+		$("[data-click]").click ({me: this}, evcb ("click"))
+
 		var cb = function (me) { 
 			return function (r) { 
 				me.addMedia.apply (me, [$(this) [0]]); 
@@ -600,8 +618,8 @@ Ant.prototype = {
 					}
 				}
 				this.charts [id] = obj;
-				this.charts [id].on ("click", function (a, id, x, el) { this.parseElement (el); }, this); 
-				this.charts [id].on ("mouseover", function (a, id, x, el) { this.parseElement (el); }, this); 
+				//this.charts [id].on ("click", function (a, id, x, el) { this.parseElement (el); }, this); 
+				//this.charts [id].on ("mouseover", function (a, id, x, el) { this.parseElement (el); }, this); 
 				this.parseElement ("#" + id);
 			}
 			if (dChart == "bars" || dChart == "lines" || dChart == "pie") { 
