@@ -4,7 +4,6 @@ function Chart (container, conf) {
 }
 var asChart = function () {
 	this.updateSize = function () { 
-		//console.log (rect.width - this.margin.left - this.margin.right);
 		this.svg.attrs ({"width": "100%", "height": "100%"})
 		var rect = this.container.node ().getBoundingClientRect ();
 

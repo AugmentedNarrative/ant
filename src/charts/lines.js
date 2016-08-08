@@ -31,32 +31,28 @@ var asLines = function () {
 		}
 		var itemsMax = d3.max (lines, function (l) { return l.values.length; });
 		var pointDistance = this.width / itemsMax;
-		console.log ("width: " + this.width + " " + this.height + " " + pointDistance + " " + itemsMax);
 		var height = this.height;
 
-				/*
-		var after = function (container, origAttrs) { 
-			return function (rets, a) { 
-			}
-			*/
-		var after = function (container, origAttrs) { 
+		var after = function (container, bgLayer, origAttrs) { 
 			return function (rets, a) {
 				var ys = [], rs = [], origYs = [];
-				var bgCont = container.insert ("g").classed ("background", true);
+				var bgCont = bgLayer.insert ("g").classed ("background", true);
 				var colCont = container.insert ("g").classed ("column", true);
 				var cirCont = container.insert ("g").classed ("circle", true);
+				var linesCont = container.insert ("g").classed ("lines", true);
 	
 				for (var i in rets) {
-					var origY = rets [i].y, origX = rets [i].x;
+					var origY = rets [i].y, origX = rets [i].x, bgX = pointDistance * i;
 					rets [i].y = 0;
 					rets [i].x = pointDistance * i;
 					rets [i].width = pointDistance;
 					rets [i].height = height; 
+
 					var rect = bgCont.insert ("rect", ":first-child")
 						.on ("click", this.createCallback ("click"))
 						.on ("mouseover", this.createCallback ("mouseover"))
 						.on ("mouseout", this.createEmptyCallback ("mouseout"));
-					this.setElementAttributes (rect, {data: rets [i]["data"], width: pointDistance, height: height, x: rets [i].x, y: 0, "class": rets [i]["class"]});
+					this.setElementAttributes (rect, {data: rets [i]["data"], width: pointDistance, height: height, x: bgX, y: 0, "class": rets [i]["class"]});
 
 					rets [i].y = origY;
 					rets [i].x = origX ? origX : rets [i].x;
@@ -73,27 +69,11 @@ var asLines = function () {
 					}
 					rs.push (rets [i].r);
 
-				}
-				if (origAttrs && origAttrs.closed) {
-					ys.push ({y: height, x: rets [i].x});
-				}
-				var x = function (d, e) { return d.x; };
-				var y = function (d, e) { return d.y; };
-				var line = container.insert ("path");
-				var svgLine = d3.line ().x (x).y (y);
-				line.attr ("d", function (t) { return svgLine (ys) })
-					.on ("mouseover", this.createCallback ("mouseover"))
-					.on ("mouseout", this.createEmptyCallback ("mouseout"))
-					.on ("click", this.createCallback ("click"));
-				this.setElementAttributes (line, origAttrs);
+					//FOREGROUND
 
-
-				//FOREGROUND 	
-				for (var i in rets) { 
-					var origY = rets [i].y, origX = rets [i].x;
 					var attrs = {
-						y: origY, 
-						x: origX, 
+						y: rets [i].y, 
+						x: rets [i].x, 
 						width: pointDistance, 
 						height: pointDistance, 
 						data: rets [i].data,
@@ -104,10 +84,8 @@ var asLines = function () {
 						.on ("mouseover", this.createCallback ("mouseover"))
 						.on ("mouseout", this.createEmptyCallback ("mouseout"));
 					attrs.height = height - attrs.y;
-					if (attrs.height < 0) attrs.height = 0;
 					this.setElementAttributes (col, attrs);
 					col.classed ("column", true);
-					console.log (attrs ["class"] + " " +attrs.y + " " + height);
 
 					var circle = cirCont.insert ("circle")
 						.on ("click", this.createCallback ("click"))
@@ -127,26 +105,48 @@ var asLines = function () {
 					if (rets [i].note) {
 						var text = container.append ("text").text (rets [i].note);
 						this.setElementAttributes (text, {"class": rets [i]["class"], x: rets [i].x, y: 0});
-						//"transform": "rotate(90,"+ rets [i].x+","+10+")"}
 						text.classed ("note", true);
 
 					}
+					// line between points
+					if (i > 0) {
+						var points = [rets [(i-1)], rets [i]];
+						var dir = "eq";
+						if (rets [i].y < rets [(i-1)].y) dir = "down"; else if (rets [i].y > rets [(i-1)].y) dir = "up"; 
+						this.setElementAttributes (linesCont.append ("path").attr ("d", function (t) { return d3.line ().x (function (a) { return a.x; }).y (function (a) { return a.y; }) (points); }), {"class": rets [i]["class"] + " " + dir, data: rets [i].data});
+					}
 				}
+				if (origAttrs && origAttrs.closed) {
+					ys.push ({y: height, x: rets [i].x});
+				}
+				var x = function (d, e) { return d.x; };
+				var y = function (d, e) { return d.y; };
+				var line = container.insert ("path");
+				line.classed ("line", true);
+				var svgLine = d3.line ().x (x).y (y);
+				line.attr ("d", function (t) { return svgLine (ys) })
+					.on ("mouseover", this.createCallback ("mouseover"))
+					.on ("mouseout", this.createEmptyCallback ("mouseout"))
+					.on ("click", this.createCallback ("click"));
+				this.setElementAttributes (line, origAttrs);
 			} 
 		}; 
 
 		var quantifierCb = this.quantifierCallback, me = this; 
 		
 
+		var bgCont = this.svg.append ("g").classed ("backgrounds", true);
 		for (var i in lines) { 
 			var line = lines [i];
 			var bar = this.svg.append ("g")
-				.on ("click", this.createCallback ("mouseover"))
+				.on ("click", this.createCallback ("click"))
 				.on ("mouseover", this.createCallback ("mouseover"))
 				.on ("mouseout", this.createEmptyCallback ("mouseout"));
-			var qn = quantifierCb.apply (this, [quantifier, after (bar, line.attrs)]); 
+			var qn = quantifierCb.apply (this, [quantifier, after (bar, bgCont, line.attrs)]); 
 			qn.apply  (this, [bar, line.values, null, line]);  
-			//this.setElementAttributes (bar, line.attrs);
+			if (line.attrs) {
+				this.setElementAttributes (bar, {"class": line.attrs ["class"], "id": line.attrs ["id"]});
+			}
 		}
 	}
 	return this;

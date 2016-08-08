@@ -153,7 +153,6 @@ ant.charts.map = function (container, width, height) {
 	this.createCallback = function (type) {
 		var me = this;
 		return function () {
-			console.log ("aquitoy");
 			var args = [];
 			for (var a in arguments) {
 				args.push (arguments [a]);

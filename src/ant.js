@@ -172,7 +172,7 @@ Ant.prototype = {
 				try {
 					qObj.data = this.prequantify (qObj);
 					if (!qObj.data) qObj.data = this.data [quantify];
-					if (chartType == "lines" || chartType == "bars" || chartType == "pie") {
+					if (chartType == "lines" || chartType == "bars" || chartType == "pie" || chartType == "treemap") {
 						this.quantifyChart (controlChart, qObj);
 					}
 					if (chartType == "map") {
@@ -180,7 +180,7 @@ Ant.prototype = {
 					}
 				} catch (e) { console.log (e); console.log (e.stack); }
 			}
-			if (chartType == "lines" || chartType == "bars" || chartType == "pie") {
+			if (chartType == "lines" || chartType == "bars" || chartType == "pie" || chartType == "treemap") {
 				this.parseChart (element, data);
 			}
 			/*
@@ -224,6 +224,7 @@ Ant.prototype = {
 		* HTML element
 		*/
 		if (data.control_element) {
+			
 			var s = $(data.control_element);
 			if (data.element_text) { s.text (data.element_text); }
 			if (data.element_add_class) { s.addClass (data.element_add_class); }
@@ -231,6 +232,13 @@ Ant.prototype = {
 			if (data.element_hide !== undefined) { s.hide (); }
 			if (data.element_show !== undefined) { s.show (); }
 			if (data.element_toggle !== undefined) { s.toggle (); }
+			if (data.element_remove !== undefined) { s.remove (); }
+			if (data.element_remove_children !== undefined) { 
+				for (var i = 0; i < s.length; i++) {
+					var cNode = s [i].cloneNode (false);
+					s [i].parentNode.replaceChild (cNode, s [i]); 
+				}
+			}
 			if (data.element_attrs) { 
 				//s.attr (data.element_attrs); 
 				if (data.element_attrs === Object (data.element_attrs)) { 
@@ -306,48 +314,99 @@ Ant.prototype = {
 			console.log (data.debug);
 		}
 		/*
+		* data catalogs 
+		*/
+		if (data.catalog) {
+			if (!this.data [data.catalog] && !this.callbacks [data.catalog]) throw "No catalog " + data.catalog + " in data collection"; 
+			var dt = this.data [data.catalog];
+			if (!dt && this.callbacks && this.callbacks [data.catalog]) dt = this.callbacks [data.catalog].apply (this, [data.catalog_args]);
+			var container = d3.selectAll (data.element_container);
+			if (dt.columns != "undefined") {
+				var elm = container.append (data.create_element);
+				if (data.item_element) { 
+					for (var a in dt.columns) {
+						elm.append (data.item_element).html (dt.columns [a]);
+					}
+				}
+			}
+			for (var x in dt) {
+				var elm = container.append (data.create_element);
+				if (data.element_attrs) {
+					var attrs = {};
+					for (var a in data.element_attrs) {
+						attrs [a] = dt [x] [data.element_attrs [a]];
+					}
+					elm.attrs (attrs);
+				}
+				if (data.element_html) {
+					elm.html (dt [x] [data.element_html]);
+				}
+				if (data.item_element) {
+					for (var a in dt [x]) {
+						if (x != "columns") { 
+							elm.append (data.item_element).html (dt [x][a]);
+						}
+					}
+				}
+
+			}
+
+		}
+
+		/*
 		* Data download and parsing
 		*/
 		if (data.download) {
-			if (data.download_id && this.data [data.download_id]) { 
+			var q = queue (), queryData = {}, type = data.type ? data.type : "csv";
+			if (!type) type = "csv";
+			if (data.query_string_elements) {
+				var sel = document.querySelectorAll (data.query_string_elements);
+				for (var e in sel) {
+					if (sel [e].name != undefined) {
+						if ((sel [e].type == "checkbox" && sel [e].checked) || (sel [e].type != "checkbox")) {
+							queryData [sel [e].name] = sel [e].value;
+						}
+					}
+				}
+			}
+			if (data.query_string_form) {
+				var form = document.getElementById (data.query_string_form)  
+				if (form && form.elements.length > 0) {
+					for (var elm in form.elements) {
+						//queryData.push ({elm: form.elements [elm].value});
+						if (form.elements [elm].name != undefined) {
+							if ((form.elements [elm].type == "checkbox" && form.elements [elm].checked) || (form.elements [elm].type != "checkbox")) {
+								queryData [form.elements [elm].name] = form.elements [elm].value;
+							}
+						}
+					}
+				}
+			}
+			var queryString = Object.keys(queryData).reduce(function(a,k){a.push(k+'='+encodeURIComponent(queryData[k]));return a},[]).join('&'),method = data.download_method ? data.download_method.toLowerCase() : "get";
+			var request = d3.request ((method == "get" && queryString) ? data.download+"?"+queryString : data.download ); 
+			if (type == "json") {
+				request = request
+					.mimeType ("text/json")
+					.response (function (xhr) { return JSON.parse(xhr.responseText); });
+			}
+			if (type == "csv") { 
+				request = request
+					.mimeType("text/csv")
+					.response(function(xhr) { return d3.csvParse (xhr.responseText); })
+			}
+			q.defer (request [method], queryString);
+			q.await ($.proxy (function (err, d) { 
+				if (this.conf.callbacks && data.download_processor && this.conf.callbacks [data.download_processor]) {
+					d = this.conf.callbacks [data.download_processor].apply (this, [d, data.download_id]); 
+				}
+
+				this.data [data.download_id] = d; 
+
 				if (data.download_parse) {
 					var me = this;
 					$(data.download_parse).each (function () { me.parseElement.apply (me, [$(this) [0]]); });
 				}
-			} else {
-				var q = queue ();
-				var type = d3 [data.type ? data.type : "csv"];
-				if (!type) type = d3.csv;
-
-				q.defer (type, data.download)
-				q.await ($.proxy (function (err, d) { 
-					if (this.conf.callbacks && data.download_processor && this.conf.callbacks [data.download_processor]) {
-						d = this.conf.callbacks [data.download_processor].apply (this, [d, data.download_id]); 
-					}
-					if (data.download_clone && data.download_clone_into) {
-						var me = this, cont = d3.select (data.download_clone_into);
-						var sel = cont.selectAll (data.download_clone) 
-								.data (d)
-								.enter ().append (data.download_clone)
-								.each (function (dt, idx) { 
-									var fn = me.conf.callbacks [data.download_clone_callback]
-									if (fn) { 
-										fn.apply (me, [this, dt, idx, d.length ? d.length : -1]); 
-									} else {
-										console.log ("No callback on download: " + data.download_clone_callback); 
-									}
-									d3.select (this).on ("click", function () { console.log ("hey"); }, this);
-								});
-					}
-					this.data [data.download_id] = d; 
-
-					if (data.download_parse) {
-						var me = this;
-						$(data.download_parse).each (function () { me.parseElement.apply (me, [$(this) [0]]); });
-					}
-				}, this));
-			}
-			
+			}, this));
 		}
 		/* data process */
 		if (data.process) { 
@@ -477,7 +536,7 @@ Ant.prototype = {
 		l.redraw (this.setFeatureId (this.conf.data [layer]), qn, plot);
 		l.on ("click", function (a, id, x, el) { this.parseElement (el); }, this); 
 		l.on ("mouseover", function (a, id, x, el) { this.parseElement (el); }, this); 
-		l.on ("mouseout", function (a, id, x, el) { this.parseElement (el); }, this); 
+		//l.on ("mouseout", function (a, id, x, el) { this.parseElement (el); }, this); 
 		this.charts [map].reZoom ();
 	},
 	setFeatureId: function (layer) {
@@ -529,6 +588,7 @@ Ant.prototype = {
 		$("[data-mouseover]").mouseover ({me: this}, evcb ("mouseover"))
 		$("[data-mouseout]").mouseout ({me: this}, evcb ("mouseout"))
 		$("[data-click]").click ({me: this}, evcb ("click"))
+		$("[data-change]").change ({me: this}, evcb ("change"))
 
 		var cb = function (me) { 
 			return function (r) { 
@@ -536,6 +596,42 @@ Ant.prototype = {
 			}
 		};
 		$("[data-media]").each (cb (this));
+	},
+	initControl: function (node) {
+		var data = $(node).data ();
+		var evcb = function (ev) { 
+			return function (a) { 
+				var mo = $(this).data () [ev];
+				if (mo) { 
+					var cb = function (ant) { 
+						return function () { 
+							ant.parseElement.apply (ant, [this]);	
+						}
+					}
+					$(mo).each (cb (a.data.me));
+				} else {
+					var x = a.data.me;
+					x.parseElement.apply (x, [this]);
+				}
+			}
+		}
+		if (data.change !== undefined) { $(node).change ({me: this, data: data}, evcb ("change")); }
+		if (data.mouseover !== undefined) { $(node).mouseover ({me: this, data: data}, evcb ("mouseover")); }
+		if (data.mouseout !== undefined) { $(node).mouseout ({me: this, data: data}, evcb ("mouseout")); }
+		if (data.click !== undefined) {  $(node).click ({me: this, data: data}, evcb ("click")); }
+		if (node.tagName == "SELECT" && data.control !== "undefined") {
+			$(node).change (
+				{me: this, data: data},
+				function (a) {
+					var sel = this;
+					for (var i = 0; i < sel.options.length; i++) {
+						if (sel.options [i].selected) {
+							a.data.me.parseElement.apply (a.data.me, [sel [i]]);
+						}
+					}
+				}
+			);
+		}
 	},
 	addMedia: function (elm) { 
 		var id = elm.id;
@@ -622,7 +718,7 @@ Ant.prototype = {
 				//this.charts [id].on ("mouseover", function (a, id, x, el) { this.parseElement (el); }, this); 
 				this.parseElement ("#" + id);
 			}
-			if (dChart == "bars" || dChart == "lines" || dChart == "pie") { 
+			if (dChart == "bars" || dChart == "lines" || dChart == "pie" || dChart == "treemap") { 
 				obj  = new ant.charts [dChart] (id, $(this).data ())	
 				this.charts [id] = obj;
 				this.parseElement ("#" + id);
