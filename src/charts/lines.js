@@ -1,6 +1,6 @@
 var asLines = function () {
 	this.redraw  = function (d, quantifier) { 
-		if (!d || !d.scale) throw "no data or scale. Scale should be added in the prequantifier";
+		if (!d || !d.scale || !d.data) throw "no data or scale. Scale should be added in the prequantifier";
 		this.callbacks = {};
 		var data = d.data;
 	

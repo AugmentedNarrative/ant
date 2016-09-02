@@ -1,11 +1,16 @@
 function Nestify (data, keys, rollup, aggregator, interiorKey) {
-	this.data = this.init (data, keys, rollup, aggregator, interiorKey);
+	this.nest = this._nest (keys, rollup, aggregator, interiorKey)
+	this.data = this.init (data, this.nest, aggregator, interiorKey);
+	this.asHierarchy = function (sum, sort) {
+		return d3.hierarchy ({values: this.nest.entries (data)}, function(d) { return d.values; })
+			.sum (sum)
+			.sort (sort)
+	}
 	return this;
 }
 Nestify.prototype = {
 	constructor: Nestify,
-	init: function (data, keys, rollup, aggregator, interiorKey) {
-		if (!data) throw "No data in nestify";
+	_nest: function (keys, rollup, aggregator, interiorKey) {
 		var n = d3.nest ();
 		if (keys) {
 			for (x in keys) {
@@ -40,7 +45,11 @@ Nestify.prototype = {
 				return obj; 
 			}
 		);
-		n = n.object (data);
+
+		return n;
+	},
+	init: function (data, nest, aggregator, interiorKey) {
+		var n = nest.object (data);
 		var summarize = function (leaf, key) {
 			if (leaf) {
 				var length = 0;
@@ -74,9 +83,9 @@ Nestify.prototype = {
 
 					}
 				}
-				if (!key) {
+				/*	if (!key) {
 					leaf.nests = keys.length 
-				}
+				}*/
 				leaf.values = function () { var ks = []; for (var k in this) {if (this [k] === Object (this [k]) && typeof this [k] != "function") { ks.push (this [k]);} } return ks; }
 				//TODO add keyName, this way we can match it to key == "2010" and keyName == "year" 
 				leaf.items = function () { var ks = [];  for (var k in this) { if (this [k] === Object (this [k]) && typeof this [k] != "function") { ks.push ({key: k, values: this [k]}); } } return ks; }
@@ -89,7 +98,7 @@ Nestify.prototype = {
 				leaf.minmean = function (accessor) { var t = this.items (); return [d3.min (t, accessor), d3.mean (t, accessor)]}
 				leaf.meanmax = function (accessor) { var t = this.items (); return [d3.mean (t, accessor), d3.max (t, accessor)]}
 				leaf.length = length;
-				leaf.hasChilds = hasChildren;
+				leaf.hasChildren = hasChildren;
 				return leaf;
 			}
 		}

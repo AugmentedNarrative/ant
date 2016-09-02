@@ -172,7 +172,7 @@ Ant.prototype = {
 				try {
 					qObj.data = this.prequantify (qObj);
 					if (!qObj.data) qObj.data = this.data [quantify];
-					if (chartType == "lines" || chartType == "bars" || chartType == "pie" || chartType == "treemap") {
+					if (chartType == "lines" || chartType == "bars" || chartType == "pie" || chartType == "treemap" || chartType == "sunburst") {
 						this.quantifyChart (controlChart, qObj);
 					}
 					if (chartType == "map") {
@@ -180,7 +180,7 @@ Ant.prototype = {
 					}
 				} catch (e) { console.log (e); console.log (e.stack); }
 			}
-			if (chartType == "lines" || chartType == "bars" || chartType == "pie" || chartType == "treemap") {
+			if (chartType == "lines" || chartType == "bars" || chartType == "pie" || chartType == "treemap" || chartType == "sunburst") {
 				this.parseChart (element, data);
 			}
 			/*
@@ -694,7 +694,7 @@ Ant.prototype = {
 	},
 	initChart: function (element) { 
 		var id = $(element).attr ('id');
-		if (!this.charts [id]) {
+		//if (!this.charts [id]) {
 			var data = $(element).data ();
 			var dChart = data.chart;
 			this.chartTypes [id] = dChart; 
@@ -718,14 +718,14 @@ Ant.prototype = {
 				//this.charts [id].on ("mouseover", function (a, id, x, el) { this.parseElement (el); }, this); 
 				this.parseElement ("#" + id);
 			}
-			if (dChart == "bars" || dChart == "lines" || dChart == "pie" || dChart == "treemap") { 
+			if (dChart == "bars" || dChart == "lines" || dChart == "pie" || dChart == "treemap" || dChart == "sunburst") { 
 				obj  = new ant.charts [dChart] (id, $(this).data ())	
 				this.charts [id] = obj;
 				this.parseElement ("#" + id);
 			}
-		} else {
-			console.log ("Chart already exists: " + id);
-		}
+		//} else {
+		//	console.log ("Chart already exists: " + id);
+		//}
 	},
 	initCharts: function () {
 		var m = this;
