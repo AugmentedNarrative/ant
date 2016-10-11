@@ -23,6 +23,7 @@ var asSunburst = function () {
 			return function (dx, e, xx) { 
 				var elm = d3.select (xx [e]); // a "g" element
 				var ret = qn.fn.apply (qn.context, [dx, qn.data, e, xx]);
+				if (!ret) ret = {};
 
 				var a = arc (dx);
 				var path = elm.append ("path").attr ("d", a);
@@ -127,7 +128,9 @@ var asSunburst = function () {
 			.selectAll ("path")
 			.data (d.data.descendants ())
 			.enter ().append ("g")
-				.on ("click", clickFn (this, quantifier))
+				.on ("click", this.createCallback ("click", clickFn (this, quantifier)))
+				.on ("mouseover", this.createCallback ("mouseover"))
+				.on ("mouseout", this.createEmptyCallback ("mouseout"))
 				.each (attrsFn (this, quantifier))
 	}
 	return this;

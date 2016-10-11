@@ -93,7 +93,7 @@ var asChart = function () {
 			d3.event.stopPropagation ();
 		}
 	}
-	this.createCallback = function (type) {
+	this.createCallback = function (type, cb) {
 		var me = this;
 		return function () {
 			d3.event.stopPropagation ();
@@ -103,6 +103,9 @@ var asChart = function () {
 			}
 			args.push (this);
 			me.callback.apply (me, [type, args]);
+			if (cb) { 
+				cb.apply (me, arguments);
+			}
 
 		}
 	}

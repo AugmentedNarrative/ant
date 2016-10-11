@@ -47,26 +47,6 @@ ant.charts.map = function (container, width, height) {
 
 		return d3.geoPath ().projection (this.projection);
 	}
-	/*
-	this.lineConnectElements = function (elmA, elmB) {
-		var path = this.getPath ();
-		var arc = this.getArc ();
-		var a = d3.select(elmA);
-
-		var centroidA = path.centroid (a.datum ());
-		var b = d3.select (elmB);
-		var centroidB = path.centroid (b.datum ())
-		var links = [];
-
-		links.push ({"source": path.projection().invert (centroidA), "target": path.projection ().invert (centroidB)});
-		var layer = this.svg.append ("g").attr ("class", "lineLayer");
-		layer.append ("path")
-			.data (links)
-			.attr ("d", function (x) { return path(arc (x)); })
-			.attr ("vector-effect", "non-scaling-stroke")
-			.style ({'stroke-width': 1, 'stroke': '#B10000', 'stroke-linejoin': 'round', 'fill': 'none'})
-	},
-	*/
 	this.zoomSelector = null,
 	this.zoomContext = 20,
 	this.reZoom = function () {
@@ -188,6 +168,7 @@ ant.charts.map = function (container, width, height) {
 	return this;
 };
 ant.charts.map.topology = function (map,name, t, f) {
+	this.plot = "lines";
 	this.parentMap = map;
 	this.name = name;
 	this.topology = t;
@@ -195,6 +176,7 @@ ant.charts.map.topology = function (map,name, t, f) {
 	this.redraw = function (setId, quantifier, plot) {
 		this.callbacks = {};
 		if (!plot) plot = "lines";
+		this.plot = plot;
 		this.parentMap.svg.select ("g." + this.name).selectAll ("text").remove ();
 		var path = this.parentMap.getPath ();
 		var parentSvg = this.parentMap.svg;
@@ -202,27 +184,27 @@ ant.charts.map.topology = function (map,name, t, f) {
 		var qn = quantifier ? $.proxy (
 				function (selector, d, plot) {  
 					var attrs = quantifier.fn.apply (quantifier.context, [d, quantifier.args, quantifier.data])
-					if (attrs) { 
-						if (plot == "points") { 
-							attrs.cx = path.centroid (d) [0];
-							attrs.cy = path.centroid (d) [1];
-						}
-						if (attrs.text) {
-							//TODO add <text> to centroid.
-						}
-						// This section adds the data-* attributes returned from the quantifier to the element...!!! 
-						// This allows the cascading of visualizations
-						var data = attrs.data;
-						attrs.data = null;
-						selector.attrs (attrs);
-						if (data) { 
-							for (var d in data) { 
-								var val = data [d];
-								if (val === Object (val)) { 
-									val = JSON.stringify (val);
-								}
-								selector.attr ("data-" + d, val);
+					if (!attrs) attrs = {};
+					if (plot == "points") { 
+						attrs.cx = path.centroid (d) [0];
+						attrs.cy = path.centroid (d) [1];
+					}
+					if (attrs.text) {
+						//TODO add <text> to centroid.
+					}
+					// This section adds the data-* attributes returned from the quantifier to the element...!!! 
+					// This allows the cascading of visualizations
+					var data = attrs.data;
+					attrs.data = null;
+					attrs ["vector-effect"] = "non-scaling-stroke";
+					selector.attrs (attrs);
+					if (data) { 
+						for (var d in data) { 
+							var val = data [d];
+							if (val === Object (val)) { 
+								val = JSON.stringify (val);
 							}
+							selector.attr ("data-" + d, val);
 						}
 					}
 				},

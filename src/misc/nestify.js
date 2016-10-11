@@ -97,6 +97,7 @@ Nestify.prototype = {
 				leaf.minsum = function (accessor) { var t = this.items (); return [d3.min (t, accessor), d3.sum (t, accessor)]}
 				leaf.minmean = function (accessor) { var t = this.items (); return [d3.min (t, accessor), d3.mean (t, accessor)]}
 				leaf.meanmax = function (accessor) { var t = this.items (); return [d3.mean (t, accessor), d3.max (t, accessor)]}
+				leaf.sortBy = function (s) { var t = this.items (); return t.sort (function (a, b) { return a.values [k] < b.values [k]; }) }
 				leaf.length = length;
 				leaf.hasChildren = hasChildren;
 				return leaf;
