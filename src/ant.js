@@ -158,6 +158,25 @@ Ant.prototype = {
 			id = element.id;
 			data = element;
 		}
+		/*
+		* Parse_first
+		*/
+		if (data.parse_first) { 
+			if (Array.isArray (data.parse_first)) { 
+				for (var x in data.parse_first) { 
+					this.parseElement (data.parse_first [x], false);
+				}
+			}
+			else {
+				var me = this;
+				$(data.parse_first).each (function () { me.parseElement.apply (me, [$(this) [0]], false); });
+			}
+		}
+
+		/*
+		* charts and quantification
+		*/
+
 		var quantify = data.quantify;
 		var quantifier = data.quantifier;
 		var qArgs = data.quantifier_args;
@@ -239,6 +258,17 @@ Ant.prototype = {
 					s [i].parentNode.replaceChild (cNode, s [i]); 
 				}
 			}
+			if (data.element_move_to !== undefined) { 
+				var idx = parseInt (data.element_move_to) ? parseInt (data.element_move_to) : 0;
+				if (data.element_move_to == "first")  { idx = 0; }
+				if (data.element_move_to == "last")  { idx = null; }
+				for (var i = 0; i < s.length; i++) { 
+					var par = s [i].parentNode, elm = par.removeChild (s [i]), sib = par.childNodes;
+					par.insertBefore (elm, sib [idx]);
+				}
+				
+			}
+
 			if (data.element_attrs) { 
 				//s.attr (data.element_attrs); 
 				if (data.element_attrs === Object (data.element_attrs)) { 
@@ -406,6 +436,12 @@ Ant.prototype = {
 					var me = this;
 					$(data.download_parse).each (function () { me.parseElement.apply (me, [$(this) [0]]); });
 				}
+				if (data.download_parse_sequence) {
+					var me = this, x = data.download_parse_sequence.split (',');
+					for (var e in x) { 
+						$(x [e]).each (function () { me.parseElement.apply (me, [$(this) [0]], false);})
+					}
+				}
 			}, this));
 		}
 		/* data process */
@@ -472,6 +508,10 @@ Ant.prototype = {
 				this.quantifyMap (controlChart, layers [l.trim()], {fn: function () { return {"class": ""} } });
 			}
 		}
+		if (data.add_layer)  {
+			var plot = data.layer_points !== undefined ? "points" : "lines";
+			this.charts [controlChart].addFeatures (data.add_layer, this.data [data.add_layer], data.layer_key).redraw (function () { }, {fn: function (a) { return {"r": 2}  } }, plot);
+		}
 		var zoomTo = data.zoom_to;
 		var zoomLevel = data.zoom_level; 
 		if (data.map_center_lat && data.map_center_lon) { 
@@ -521,19 +561,16 @@ Ant.prototype = {
 		if (this.conf.quantifiers && this.conf.quantifiers ["maps"]) {
 			var q = quantifier ? this.conf.quantifiers ["maps"] [quantifier.fn] : null;
 		}
-		var l = this.conf.data [layer];
 		if (!q && quantifier) q = quantifier.fn; 
-		if (!l) throw "No data found: " + layer;
-
 		var qn = quantifier ? {fn: q, context: this, args: quantifier.ar, data: quantifier.data} : null;
 		if (!this.charts [map].topologies[layer]) throw "No layer: "+layer + " for map: " + map;
 
 		/*
 		* This is where the difference between maps and normal charts resides: maps have different layers and we just want to quantify one of them here.
 		*/
-		var plot = l.plot ? l.plot : "lines"
 		var l = this.charts [map].topologies [layer];
-		l.redraw (this.setFeatureId (this.conf.data [layer]), qn, plot);
+		var plot = l.plot ? l.plot : "lines"
+		l.redraw (null, qn, plot);
 		l.on ("click", function (a, id, x, el) { this.parseElement (el); }, this); 
 		l.on ("mouseover", function (a, id, x, el) { this.parseElement (el); }, this); 
 		//l.on ("mouseout", function (a, id, x, el) { this.parseElement (el); }, this); 
