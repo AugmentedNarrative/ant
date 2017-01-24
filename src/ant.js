@@ -173,6 +173,10 @@ Ant.prototype = {
 			}
 		}
 
+		if (data.init_scroll !== undefined) { 
+			this.initScroll ();
+		}
+
 		/*
 		* charts and quantification
 		*/
