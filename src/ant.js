@@ -355,12 +355,14 @@ Ant.prototype = {
 			var dt = this.data [data.catalog];
 			if (!dt && this.callbacks && this.callbacks [data.catalog]) dt = this.callbacks [data.catalog].apply (this, [data.catalog_args]);
 			var container = d3.selectAll (data.element_container);
-			if (dt.columns != "undefined") {
+			var cols = data.columns === undefined && dt.columns !== undefined ? dt.columns : (data.columns !== undefined ? data.columns : [0])
+			if (data.column_names) { 
 				var elm = container.append (data.create_element);
 				if (data.item_element) { 
-					for (var a in dt.columns) {
-						elm.append (data.item_element).html (dt.columns [a]);
-					}
+					elm = elm.append (data.item_element);
+				}
+				for (var a in cols) {
+					elm.append (data.item_element).html (cols [a]);
 				}
 			}
 			for (var x in dt) {
@@ -376,10 +378,8 @@ Ant.prototype = {
 					elm.html (dt [x] [data.element_html]);
 				}
 				if (data.item_element) {
-					for (var a in dt [x]) {
-						if (x != "columns") { 
-							elm.append (data.item_element).html (dt [x][a]);
-						}
+					for (var a in cols) {
+						elm.append (data.item_element).html (dt [x][cols [a]]);
 					}
 				}
 
