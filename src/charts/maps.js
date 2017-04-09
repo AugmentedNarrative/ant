@@ -147,6 +147,7 @@ ant.charts.map = function (container, width, height) {
 			this.callbacks [ev] = [];
 		}
 		if (!scope) { scope = this; }
+		this.callbacks [ev] = []; // HACK, FIXME!  
 		this.callbacks [ev].push ({ scope: scope, callback: cb});	
 	}
 	this.removeCallback = function (ev, cb) {
@@ -216,22 +217,28 @@ ant.charts.map.topology = function (map,name, t, f) {
 				.each (function (d) { qn (d3.select (this), d, plot); })
 				.attr ("id", setId)
 				.attr ("d", function (x) { return path (x); })
-				.enter ()
-				.append ("path")
 				.on ("click", this.createCallback ("click"))
 				.on ("mouseover", this.createCallback ("mouseover"))
 				.on ("mouseout", this.createCallback ("mouseout"))
+				.enter ()
+					.append ("path")
+				//	.on ("click", this.createCallback ("click"))
+				//	.on ("mouseover", this.createCallback ("mouseover"))
+				//	.on ("mouseout", this.createCallback ("mouseout"))
 		}
 		if (plot == "points") {
 			this.parentMap.svg.select ("g." + this.name).selectAll ("circle")
 				.data (topojson.feature (this.topology, this.features).features)
 				.each (function (d) { qn (d3.select (this), d, plot); }) 
 				.attr ("id", setId)
-				.enter ()
-				.append ("circle")
 				.on ("click", this.createCallback ("click"))
 				.on ("mouseover", this.createCallback ("mouseover"))
 				.on ("mouseout", this.createCallback ("mouseout"))
+				.enter ()
+					.append ("circle")
+					.on ("click", this.createCallback ("click"))
+					.on ("mouseover", this.createCallback ("mouseover"))
+					.on ("mouseout", this.createCallback ("mouseout"))
 		}
 	}
 	this.createCallback = function (type) {
@@ -251,6 +258,7 @@ ant.charts.map.topology = function (map,name, t, f) {
 			this.callbacks [ev] = [];
 		}
 		if (!scope) { scope = this; }
+		this.callbacks [ev] = []; // HACK! FIXME
 		this.callbacks [ev].push ({ scope: scope, callback: cb});	
 	}
 	this.removeCallback = function (ev, cb) {
