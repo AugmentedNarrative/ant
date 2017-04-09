@@ -150,13 +150,21 @@ Ant.prototype = {
 		/* 
 		* Lets see what we have here: data? should we quantify something?
 		*/
-		var data;
-		if (typeof element === 'string' || element.tagName) { // this is a string or an HTMLElement (check compatibility with other browsers)
-			var id = $(element).attr ("id");
-			data = $(element).data ();
-		} else { 
-			id = element.id;
+		if (typeof element === 'string') { // this is a string or an HTMLElement (check compatibility with other browsers)
+			element = $(element) [0];
+		}
+		var id = element.id, data = {};
+		if (element === Object (element)) {
 			data = element;
+		}
+		// Let's convert things to JSON
+		for (var k in element.dataset) {
+			try {
+				var j = JSON.parse (element.dataset [k]);
+				if (j) {
+					data [k] = j;
+				} 
+			} catch (e) { data [k] = element.dataset [k]; }
 		}
 		/*
 		* Parse_first
@@ -195,7 +203,7 @@ Ant.prototype = {
 				try {
 					qObj.data = this.prequantify (qObj);
 					if (!qObj.data) qObj.data = this.data [quantify];
-					if (chartType == "lines" || chartType == "bars" || chartType == "pie" || chartType == "treemap" || chartType == "sunburst") {
+					if (chartType == "lines" || chartType == "bars" || chartType == "pie" || chartType == "treemap" || chartType == "sunburst" || chartType == "force") {
 						this.quantifyChart (controlChart, qObj);
 					}
 					if (chartType == "map") {
@@ -203,7 +211,7 @@ Ant.prototype = {
 					}
 				} catch (e) { console.log (e); console.log (e.stack); }
 			}
-			if (chartType == "lines" || chartType == "bars" || chartType == "pie" || chartType == "treemap" || chartType == "sunburst") {
+			if (chartType == "lines" || chartType == "bars" || chartType == "pie" || chartType == "treemap" || chartType == "sunburst" || chartType == "force") {
 				this.parseChart (element, data);
 			}
 			/*
@@ -759,7 +767,7 @@ Ant.prototype = {
 				//this.charts [id].on ("mouseover", function (a, id, x, el) { this.parseElement (el); }, this); 
 				this.parseElement ("#" + id);
 			}
-			if (dChart == "bars" || dChart == "lines" || dChart == "pie" || dChart == "treemap" || dChart == "sunburst") { 
+			if (dChart == "bars" || dChart == "lines" || dChart == "pie" || dChart == "treemap" || dChart == "sunburst" || dChart == "force") { 
 				obj  = new ant.charts [dChart] (id, $(this).data ())	
 				this.charts [id] = obj;
 				this.parseElement ("#" + id);
