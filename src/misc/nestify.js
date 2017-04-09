@@ -24,13 +24,17 @@ Nestify.prototype = {
 			function (r) { 
 				var obj = {}; 
 				for (d in rollup) { 
+					if (!obj [rollup [d]]) obj [rollup [d]] = [];
+					for (i in r) {
+						obj [rollup [d]].push (r [i] [rollup [d]]);
+					}
 					if (!aggregator) { 
-						for (i in r) { 
-							var a = r [i];
-							if (!obj [rollup [d]]) obj [rollup [d]] = {};
-							obj [rollup [d]] = a [rollup [d]];
-						}
+						obj [rollup [d]] = d3.sum (obj [rollup [d]]);
 					} else { 
+						obj [rollup [d]] = aggregator (obj [rollup [d]], rollup [d])
+					}
+					if (!obj [rollup [d]]) obj [rollup [d]] = r [i] [rollup [d]];
+						/*
 						var cb = function (col, intK) { 
 							return function (a) { if (intK) { return  parseInt (a [intK]); } return parseInt (a [col]); }
 						}
@@ -39,7 +43,7 @@ Nestify.prototype = {
 						} else {
 							obj [rollup [d]] = aggregator (r, cb (rollup [d], interiorKey));
 						}
-					}
+						*/
 
 				} 
 				return obj; 
