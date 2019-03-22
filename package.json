@@ -1,0 +1,16 @@
+{
+	"name": "ant",
+	"version": "0.1.1",
+	"description": "Augmented Narrative Toolkit",
+	"files": [
+		"src",
+		"dist/*.js"
+	],
+	"scripts": {
+		"dev": "rollup -w -c scripts/config.js --environment TARGET:dev",
+		"test": "npm run lint"
+	},
+	"dependencies": {
+		"npm": "^6.9.0"
+	}
+}
