@@ -1,16 +1,29 @@
 {
-	"name": "ant",
-	"version": "0.1.1",
-	"description": "Augmented Narrative Toolkit",
-	"files": [
-		"src",
-		"dist/*.js"
-	],
-	"scripts": {
-		"dev": "rollup -w -c scripts/config.js --environment TARGET:dev",
-		"test": "npm run lint"
-	},
-	"dependencies": {
-		"npm": "^6.9.0"
-	}
+  "name": "ant-typescript",
+  "version": "1.0.0",
+  "description": "Libreria javascript ant",
+  "main": "index.js",
+  "scripts": {
+    "dev": "webpack --mode development",
+    "build": "webpack --mode production",
+    "tsdoc": "typedoc --out ts-doc src"
+  },
+  "keywords": [
+    "javascript",
+    "ant",
+    "d3"
+  ],
+  "author": "conacyt",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/d3": "^5.7.1",
+    "npm-run-all": "^4.1.5",
+    "ts-loader": "^5.3.3",
+    "typescript": "^3.3.4000",
+    "webpack": "^4.29.6",
+    "webpack-cli": "^3.3.0"
+  },
+  "dependencies": {
+    "d3": "^5.9.2"
+  }
 }
