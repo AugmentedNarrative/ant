@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Debug</title>
+</head>
+<body>
+    <a ant-onload ant-debug="Here I am"></a>
+    <a 
+    ant-onload 
+    ant-download="http://localhost/d3-ejemplos/datos/homicidio_doloso_2018_layer.geojson"
+    ant-download_id="delitos"
+    ant-download_format="geojson"
+    ant-download_onSuccess="#debug-onSuccess"
+    ></a>
+    
+    <a ant-debug="listo aqui estan los datos" id="debug-onSuccess"></a>
+    
+    
+    
+    
+    <script src="../dist/bundle.js"></script>
+    <script>
+        var antinstance=new ant.Ant({
+            data: {
+                //delitos: 
+            }, 
+            callbacks: { 
+                delitosDownload: function (dataset, req){
+                    //this.data.delitos ... 
+                }
+            }
+
+        });
+
+    </script>
+</body>
+</html>
