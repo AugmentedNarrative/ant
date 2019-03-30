@@ -23,6 +23,15 @@ export class Ant {
      * @memberof Ants
      */
     element:AntElement;
+
+    /**
+     *
+     *
+     * @type {AntScope}
+     * @memberof Ant
+     */
+    public scope!:AntScope;
+
     /**
      *Creates an instance of Ant.
      * @param {*} options 
@@ -35,6 +44,13 @@ export class Ant {
         this.events.onLoadDocument(()=>{
             this.parseItems_onLoad();
         });
+        this.scope={data:{},callbacks:{},elements:{}};
+        if( options.hasOwnProperty('data')){
+            this.scope.data=options.data;
+        }
+        if( options.hasOwnProperty('callbacks')){
+            this.scope.callbacks=options.callbacks;
+        }
     }
 
     /**
@@ -51,8 +67,10 @@ export class Ant {
         });
     }
     
+}
 
-    
-
-    
+interface AntScope{
+    data:any,
+    callbacks:any,
+    elements:any  
 }

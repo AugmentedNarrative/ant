@@ -1,4 +1,5 @@
 import { Ant } from "../ant";
+import { Parser } from "../parsers/parserClass";
 
 /**
  *represent the object that initialize the ant hooks and parse Dom elements
@@ -73,4 +74,35 @@ export class AntElement {
             }
         }
     }
+
+    /**
+     * function that verifies what value the attribute has and decides if it parse it or calls it from the scope
+     *  
+     * @param {string} attr
+     * @memberof AntElement
+     */
+    public parseOrCallFnFromAttributeElement(attr:string,sender:Parser|undefined,data:any){
+        //verify if is selector or scope item of ant
+        let elements=document.querySelectorAll(attr);
+        if(elements.length>0){
+            elements.forEach((ele)=>{
+                this.parse(ele);
+            });
+        }else{
+            //is item scope (callback)
+            let response:responseCallback={sender:sender,data:data}
+            this.ant.scope.callbacks[attr](response);
+        }
+    }
+}
+
+/**
+ * represents return object in callback stored in Ant scope
+ *
+ * @interface responseCallback
+ */
+interface responseCallback{
+    sender:Parser|undefined,
+    data:any
+
 }

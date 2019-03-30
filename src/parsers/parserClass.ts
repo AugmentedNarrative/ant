@@ -13,7 +13,7 @@ export class Parser {
      * @type {Ant}
      * @memberof Parser
      */
-    public ant:Ant;
+    private ant:Ant;
 
     /**
      * the HtmlElement
@@ -29,7 +29,7 @@ export class Parser {
      * @type {string}
      * @memberof Parser
      */
-    public id:string="";
+    public id:string="_";
 
     /**
      *name of main hook of the element
@@ -49,14 +49,32 @@ export class Parser {
         this.ant=ant;
         this.element=element;
         this.nameHook=nameHook;
-        //verificar si tiene id el elemento
-        if(this.element.getAttribute(nameHook+"_id") != null){
-            this.id=<string>(this.element.getAttribute(nameHook+"_id"));
+        //verify if have id attr
+        if(this.element.getAttribute("id") != null){
+            this.id=<string>(this.element.getAttribute("id"));
+            // can be saved in the ant scope if contains id
+            this.storeInAnt();
         }
     }
+    
+    /**
+     *returns instance main ant
+     *
+     * @returns {Ant} ant instance
+     * @memberof Parser
+     */
+    public getAnt():Ant{
+        return this.ant;
+    }
 
-    public static storeInAnt(parser:Parser){
-        // can be saved in the ant scope if contains id
+    /**
+     * this function save this element in ant.scope.elements\n
+     * accesible with ant.scope.elements[id]
+     *
+     * @memberof Parser
+     */
+    public storeInAnt(){
+        this.ant.scope.elements[this.id]=this;
     }
 
 }

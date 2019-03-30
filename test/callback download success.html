@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Debug</title>
+</head>
+<body>
+    
+    <p>ejemplo de [ant-download] poniendo en la propiedad [ant-download_success] el nombre de una a funcion definida en las opciones que inicializan ANT </p>
+    <h3>(abre la consola)</h3>
+
+    
+    <!--delitosDownload es el nombre de la funcion definida en las opciones del objeto ANT  -->
+
+    <a 
+    ant-onload 
+    ant-download="http://localhost/d3-ejemplos/datos/homicidio_doloso_2018_layer.geojson"
+    id="delitos"
+    ant-download_format="geojson"
+    ant-download_success="delitosDownload" 
+    ant-debug="yendo por los datos"
+    ></a>
+    
+    
+    
+    
+    
+    
+    <script src="../dist/bundle.js"></script>
+    <script>
+        var antinstance=new ant.Ant({
+            data: {
+                //delitos: 
+            }, 
+            callbacks: { 
+                delitosDownload: function (response){
+                    //this.data.delitos ... 
+                    //console.log(this)
+                    console.log(response);
+                }
+            }
+
+        });
+
+    </script>
+</body>
+</html>
