@@ -55,6 +55,7 @@ export class TableElement extends Parser{
     private render(dataset:Dataset){
         let columnasARenderear=(this.columns.length==1 && this.columns[0]=="")?dataset.columns:this.columns;
         let table;
+        this.element.innerHTML="";
         if(this.element.tagName=="table"){
             table=this.element;
         }else{
