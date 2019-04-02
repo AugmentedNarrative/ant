@@ -827,6 +827,8 @@ var Parser = /** @class */ (function () {
             keys.forEach(function (kk) {
                 delete ant.scope.elements[kk[1]];
             });
+            //deleted accesible key attribute
+            ele.setAttribute("ant___0initparse", "");
             Parser.writeNewElementAttributes(ele, attributes);
             ant.element.parse(ele);
             rre = rre || true;
