@@ -1,6 +1,7 @@
 import {AntEvents} from "./core/events";
 import {AntElement} from "./core/element";
 import {ParsersModule} from "./parsers/parsersModule"
+import { Dataset } from "./utils/dataset";
 
 /**
  *represents the object 'Ant' that the end user will instantiate, when creating a 'new ANT', everything is initialized
@@ -51,6 +52,8 @@ export class Ant {
         if( options.hasOwnProperty('callbacks')){
             this.scope.callbacks=options.callbacks;
         }
+        //lo listen ant-onclick events
+        this.events.addListenersToElementsOnClick();
     }
 
     /**
@@ -65,6 +68,37 @@ export class Ant {
         elements.forEach((ele)=>{
             this.element.parse(ele);
         });
+    }
+
+    /**
+     * save an item to ant scope
+     *
+     * @param {string} group (data,callbacks or elements)
+     * @param {*} item 
+     * @param {string} id accesible key
+     * @returns {boolean} if saved or not saved
+     * @memberof Ant
+     */
+    public addItemToScope(group:string, item:any,id:string):boolean{
+        let saved=false;
+        if(group=="data"){
+            //only dataset objects
+            if(item instanceof Dataset){
+                this.scope.data[id]=item;
+                saved=true
+            }
+            //console.log(item instanceof Dataset);
+        }else if(group=="callbacks"){
+            //only functions
+            if(item instanceof Function){
+                this.scope.callbacks[id]=item;
+                saved=true
+            }
+        }else if(group=="elements"){
+            this.scope.elements[id]=item;
+            saved=true
+        }
+        return saved;
     }
     
 }

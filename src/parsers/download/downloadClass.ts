@@ -1,31 +1,34 @@
-import { Parser } from "../parserClass";
 import { Ant } from "../../ant";
-import { Dataset } from "../../utils/datasetClass";
+import { Dataset, DatasetContainer } from "../../utils/dataset";
+import { Parser } from "../parserClass";
 
 /**
- *represent the element with hook named "ant-download"
+ * represent the element with hook named "ant-download"
  *
  * @export
  * @class DownloadElement
  * @extends {Parser}
  */
-export class DownloadElement extends Parser{
+export class DownloadElement extends Parser implements DatasetContainer{
     /**
-     *URL of data
+     * property defined from [ ant-downlaod ]\n
+     * URL of data
      *
      * @type {*}
      * @memberof DownloadElement
      */
     public url:any;
     /**
-     *attribute to parse on succes data
+     * property defined from [ ant-downlaod_success ]\n
+     * attribute to parse on succes data
      *
      * @type {*}
      * @memberof DownloadElement
      */
     public success:any;
     /**
-     *format of the data : \n geojson,json,csv, etc
+     * property defined from [ ant-downlaod_format ]\n
+     * format of the data : \n geojson,json,csv, etc
      *
      * @type {string}
      * @memberof DownloadElement
@@ -36,9 +39,25 @@ export class DownloadElement extends Parser{
      * object stored data in the current format 
      *
      * @type {Dataset}
-     * @memberof DownloadElement
+     * @memberof DatasetContainer
      */
-    public dataset!:Dataset;
+    public dataset?:Dataset;
+
+    /**
+     * the key accesible for this dataset in scope ant.data
+     *
+     * @type {string}
+     * @memberof DatasetContainer
+     */
+    public datasetScopeAccesible?:string;
+
+    /**
+     * indicates if dataset is ready
+     *
+     * @type {boolean}
+     * @memberof DatasetContainer
+     */
+    public datasetIsReady:boolean=false;
 
     /**
      * Creates an instance of DownloadElement.
@@ -52,6 +71,7 @@ export class DownloadElement extends Parser{
         this.format=(this.element.getAttribute(this.nameHook+"_format") == null )?"json":<string>(this.element.getAttribute(this.nameHook+"_format"));
         this.success=this.element.getAttribute(this.nameHook+"_success");
         this.loadData();
+        
     }
     /**
      * send xhr request
@@ -67,14 +87,14 @@ export class DownloadElement extends Parser{
             //on load all
             if(req.readyState==4){
                 if(req.status==200){
-                    //parse the elements
+                    //save dataset
                     th1.dataset=new Dataset(req.responseText,th1.format);
+                    th1.datasetIsReady=true;
+                    th1.datasetScopeAccesible=th1.id;
+                    th1.getAnt().addItemToScope("data",th1.dataset,th1.datasetScopeAccesible);
+                    //parse the elements
                     th1.getAnt().element.parseOrCallFnFromAttributeElement(th1.success,th1,th1.dataset);
-                    //let elementos=document.querySelectorAll(th1.success);
-                    //elementos.forEach((ele)=>{
-                      //  th1.ant.element.parse(ele);
-                    //});
-                    //console.log(req.responseText);
+                    
                 }else{
                     console.warn("error on XMLHttpRequest "+th1.url);
                 }

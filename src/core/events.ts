@@ -45,6 +45,15 @@ export class AntEvents {
         }, false);
     }
 
+    public addListenersToElementsOnClick(){
+        let elements=document.querySelectorAll('[ant-onclick]');
+        elements.forEach((ell)=>{
+            ell.addEventListener("click",()=>{
+                this.ant.element.parse(ell);
+                return false;
+            },false)
+        })
+    }
     
     /**
      * Rewritable function from the AntEvent instance\n   

@@ -1,16 +1,17 @@
+import { Ant } from "../ant";
 
 export class Dataset {
     data:Array<RowDataset>;
     format:string;
     isGeometry:boolean;
     columns:Array<string>=[""];
-    jsonVirgen!:any;
+    pureJson!:any;
     
     constructor(data:string,format="json") {
         this.format=format;
         if(format=="geojson"){
             let data1=JSON.parse(data);
-            this.jsonVirgen=data1
+            this.pureJson=data1
             this.data=data1.features.map((feature:any)=>{
                 return new RowDataset(feature,format);
             });
@@ -36,7 +37,45 @@ export class Dataset {
         
     }
 
+    public static extractDatasetFromElementOrScope(ant:Ant,dataset_attr:string):Dataset|null{
+        let elems=document.querySelectorAll(dataset_attr);
+        
+        let datasetReturn:Dataset|null=null;
+        //debugger
+        if(elems.length>0){
+            elems.forEach((telem)=>{
+                //verify if this element contains parsers 
+                let accesibles:string=telem.getAttribute("ant___0initparse") || "";
+                if(accesibles.length>0){
+                    let hooks=accesibles.split(",");
+                    hooks.forEach((hook)=>{
+                        let acces=hook.split(":");
+                        let obj=ant.scope.elements[acces[1]];
+                        //verify instance with dataset
+                        if("datasetIsReady" in obj && "dataset" in obj){
+                            datasetReturn=obj.dataset;
+                        }
+                        
+                    });
+                }
+            });
+        }
+
+        if(datasetReturn==null){
+            datasetReturn=this.extractDatasetFromScope(ant,dataset_attr);
+        }
+
+        return  datasetReturn;
+        
+    }
+
+    public static extractDatasetFromScope(ant:Ant,key:string){
+        return ant.scope.data[key];
+    }
+
 }
+
+
 export class RowDataset{
     public keys:Array<string>=[];
     public object:any={};
@@ -64,4 +103,11 @@ export class RowDataset{
         //console.log(key,this.object);
         return this.object[key];
     }
+}
+
+
+export interface DatasetContainer{
+    dataset?:Dataset,
+    datasetScopeAccesible?:string,
+    datasetIsReady:boolean
 }

@@ -74,7 +74,61 @@ export class Parser {
      * @memberof Parser
      */
     public storeInAnt(){
-        this.ant.scope.elements[this.id]=this;
+        //create key accesible
+        let actualsize=Object.keys(this.ant.scope.elements).length;
+        let key=this.id+"__"+actualsize;
+        this.ant.scope.elements[key]=this;
+
+        //and set in attributte to access
+        let loquehay=this.element.getAttribute("ant___0initparse");
+        let nuevoval:string=(loquehay==null)?"":<string>loquehay;
+        //console.log(1,nuevoval);
+        nuevoval=(nuevoval.length>0)?nuevoval+","+this.nameHook+":"+key:this.nameHook+":"+key;
+        //console.log(2,nuevoval);
+        this.element.setAttribute("ant___0initparse",nuevoval);
     }
 
+    public static writeNewElementAttributes(element:Element,attributes:Array<any>){
+        //first change the attrs and reload 
+        attributes.forEach((attr)=>{
+            element.setAttribute(attr.name,attr.value);
+        })
+        //reload
+    }
+
+    public static reload(ant:Ant,elements:Array<Element>,attributes:Array<any>):boolean{
+        let rre=false;
+        elements.forEach((ele)=>{
+            let keys=Parser.getAccesKeysElement(ele);
+            Parser.writeNewElementAttributes(ele,attributes);
+            ant.element.parse(ele);
+            rre=rre || true;
+        })
+        return rre;
+    }
+
+    /**
+     * get Accesible Ant Scope Keys Element
+     * 
+     * @static
+     * @param {Element} element
+     * @returns {any[]}
+     * @memberof Parser
+     */
+    public static getAccesKeysElement(element:Element):any[]{
+        let returns:any[]=[];
+        let telem=element;
+        let accesibles:string=telem.getAttribute("ant___0initparse") || "";
+                if(accesibles.length>0){
+                    let hooks=accesibles.split(",");
+                    hooks.forEach((hook)=>{
+                        let acces=hook.split(":");
+                        returns.push(acces);
+                        //let obj=ant.scope.elements[acces[1]];
+                        
+                        
+                    });
+                }
+        return returns;
+    }
 }
