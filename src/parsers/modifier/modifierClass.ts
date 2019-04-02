@@ -22,6 +22,7 @@ export class ModifierElement extends Parser{
         super(element,ant,"ant-modifier");
         this.selectorToModify=this.element.getAttribute(this.nameHook) || "";
         this.getAttributesToChange();
+        this.change();
     }
 
     public getAttributesToChange(){
