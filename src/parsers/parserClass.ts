@@ -97,9 +97,14 @@ export class Parser {
     }
 
     public static reload(ant:Ant,elements:Array<Element>,attributes:Array<any>):boolean{
+        //debugger;
         let rre=false;
         elements.forEach((ele)=>{
             let keys=Parser.getAccesKeysElement(ele);
+            //delete from scope with keys
+            keys.forEach((kk)=>{
+                delete ant.scope.elements[kk[1]];
+            });
             Parser.writeNewElementAttributes(ele,attributes);
             ant.element.parse(ele);
             rre=rre || true;

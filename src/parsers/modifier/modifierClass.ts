@@ -22,14 +22,15 @@ export class ModifierElement extends Parser{
         super(element,ant,"ant-modifier");
         this.selectorToModify=this.element.getAttribute(this.nameHook) || "";
         this.getAttributesToChange();
+        this.change();
     }
 
     public getAttributesToChange(){
         let nuevosAttrs=[];
         let attrs=this.element.attributes;
         for (let i=0;i<attrs.length;i++) {
-            if(attrs[i].name.indexOf(this.nameHook+"__")){
-                let name=attrs[i].name.split("__")[1];
+            if(attrs[i].nodeName.indexOf(this.nameHook+"__")==0){
+                let name=attrs[i].nodeName.split("__")[1];
                 nuevosAttrs.push({name:name,value:attrs[i].nodeValue})
             }
         }
@@ -43,6 +44,7 @@ export class ModifierElement extends Parser{
             for (let i = 0; i < elements.length; i++) {
                 array1.push(elements[i]);
             }
+            //console.log(elements);
             Parser.reload(this.getAnt(),array1,this.attributesToChange || []);
         }else{
             console.warn("target modifier not found");

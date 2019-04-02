@@ -634,6 +634,112 @@ var DownloadModule;
 
 /***/ }),
 
+/***/ "./src/parsers/modifier/modifierClass.ts":
+/*!***********************************************!*\
+  !*** ./src/parsers/modifier/modifierClass.ts ***!
+  \***********************************************/
+/*! exports provided: ModifierElement */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ModifierElement", function() { return ModifierElement; });
+/* harmony import */ var _parserClass__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../parserClass */ "./src/parsers/parserClass.ts");
+var __extends = (undefined && undefined.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+
+var ModifierElement = /** @class */ (function (_super) {
+    __extends(ModifierElement, _super);
+    /**
+     *Creates an instance of ModifierElement.
+     * @param {Element} element
+     * @param {Ant} ant
+     * @memberof ModifierElement
+     */
+    function ModifierElement(element, ant) {
+        var _this = _super.call(this, element, ant, "ant-modifier") || this;
+        _this.selectorToModify = _this.element.getAttribute(_this.nameHook) || "";
+        _this.getAttributesToChange();
+        _this.change();
+        return _this;
+    }
+    ModifierElement.prototype.getAttributesToChange = function () {
+        var nuevosAttrs = [];
+        var attrs = this.element.attributes;
+        for (var i = 0; i < attrs.length; i++) {
+            if (attrs[i].nodeName.indexOf(this.nameHook + "__") == 0) {
+                var name_1 = attrs[i].nodeName.split("__")[1];
+                nuevosAttrs.push({ name: name_1, value: attrs[i].nodeValue });
+            }
+        }
+        this.attributesToChange = nuevosAttrs;
+    };
+    ModifierElement.prototype.change = function () {
+        var elements = document.querySelectorAll(this.selectorToModify);
+        if (elements.length > 0) {
+            var array1 = [];
+            for (var i = 0; i < elements.length; i++) {
+                array1.push(elements[i]);
+            }
+            //console.log(elements);
+            _parserClass__WEBPACK_IMPORTED_MODULE_0__["Parser"].reload(this.getAnt(), array1, this.attributesToChange || []);
+        }
+        else {
+            console.warn("target modifier not found");
+        }
+    };
+    return ModifierElement;
+}(_parserClass__WEBPACK_IMPORTED_MODULE_0__["Parser"]));
+
+
+
+/***/ }),
+
+/***/ "./src/parsers/modifier/modifierModule.ts":
+/*!************************************************!*\
+  !*** ./src/parsers/modifier/modifierModule.ts ***!
+  \************************************************/
+/*! exports provided: ModifierModule */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ModifierModule", function() { return ModifierModule; });
+/* harmony import */ var _modifierClass__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./modifierClass */ "./src/parsers/modifier/modifierClass.ts");
+
+/**
+ * Modulo que contiene la inicializacion del parser Modifier
+ */
+var ModifierModule;
+(function (ModifierModule) {
+    ModifierModule.nameHook = "ant-modifier";
+    /**
+     * initialize the element with hook named "ant-table"
+     *
+     * @export
+     * @param {Element} element
+     * @param {Ant} ant
+     */
+    function init(element, ant) {
+        var debug = new _modifierClass__WEBPACK_IMPORTED_MODULE_0__["ModifierElement"](element, ant);
+    }
+    ModifierModule.init = init;
+})(ModifierModule || (ModifierModule = {}));
+
+
+/***/ }),
+
 /***/ "./src/parsers/parserClass.ts":
 /*!************************************!*\
   !*** ./src/parsers/parserClass.ts ***!
@@ -713,9 +819,14 @@ var Parser = /** @class */ (function () {
         //reload
     };
     Parser.reload = function (ant, elements, attributes) {
+        //debugger;
         var rre = false;
         elements.forEach(function (ele) {
             var keys = Parser.getAccesKeysElement(ele);
+            //delete from scope with keys
+            keys.forEach(function (kk) {
+                delete ant.scope.elements[kk[1]];
+            });
             Parser.writeNewElementAttributes(ele, attributes);
             ant.element.parse(ele);
             rre = rre || true;
@@ -764,6 +875,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _debug_debugModule__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./debug/debugModule */ "./src/parsers/debug/debugModule.ts");
 /* harmony import */ var _download_downloadModule__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./download/downloadModule */ "./src/parsers/download/downloadModule.ts");
 /* harmony import */ var _table_tableModule__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./table/tableModule */ "./src/parsers/table/tableModule.ts");
+/* harmony import */ var _modifier_modifierModule__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./modifier/modifierModule */ "./src/parsers/modifier/modifierModule.ts");
+
 
 
 
@@ -779,6 +892,7 @@ var ParsersModule;
         ant.element.registerHook(_debug_debugModule__WEBPACK_IMPORTED_MODULE_0__["DebugModule"].nameHook, _debug_debugModule__WEBPACK_IMPORTED_MODULE_0__["DebugModule"].init);
         ant.element.registerHook(_download_downloadModule__WEBPACK_IMPORTED_MODULE_1__["DownloadModule"].nameHook, _download_downloadModule__WEBPACK_IMPORTED_MODULE_1__["DownloadModule"].init);
         ant.element.registerHook(_table_tableModule__WEBPACK_IMPORTED_MODULE_2__["TableModule"].nameHook, _table_tableModule__WEBPACK_IMPORTED_MODULE_2__["TableModule"].init);
+        ant.element.registerHook(_modifier_modifierModule__WEBPACK_IMPORTED_MODULE_3__["ModifierModule"].nameHook, _modifier_modifierModule__WEBPACK_IMPORTED_MODULE_3__["ModifierModule"].init);
     }
     ParsersModule.initParsers = initParsers;
 })(ParsersModule || (ParsersModule = {}));
@@ -847,6 +961,7 @@ var TableElement = /** @class */ (function (_super) {
     TableElement.prototype.render = function (dataset) {
         var columnasARenderear = (this.columns.length == 1 && this.columns[0] == "") ? dataset.columns : this.columns;
         var table;
+        this.element.innerHTML = "";
         if (this.element.tagName == "table") {
             table = this.element;
         }
