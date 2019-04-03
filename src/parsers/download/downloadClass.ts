@@ -69,7 +69,7 @@ export class DownloadElement extends Parser implements DatasetContainer{
         super(element,ant,"ant-download");
         this.setParserAttributes([
             {name:"",valueDefault:""}, //ant-download is required
-            {name:"format",valueDefault:"geojson"}, //ant-download_format
+            {name:"format",valueDefault:"json"}, //ant-download_format
             {name:"success",valueDefault:""}, //ant-download_success  (parse elements or call function in scope)
         ]);
         this.url=this.getAttributeValue(this.nameHook);
