@@ -56,7 +56,7 @@ export class TableElement extends Parser{
         let columnasARenderear=(this.columns.length==1 && this.columns[0]=="")?dataset.columns:this.columns;
         let table;
         this.element.innerHTML="";
-        if(this.element.tagName=="table"){
+        if(this.element.tagName=="TABLE"){
             table=this.element;
         }else{
             table=document.createElement("table");

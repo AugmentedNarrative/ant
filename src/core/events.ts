@@ -32,6 +32,7 @@ export class AntEvents {
         this.ant = ant;
         this.initListenReadyDocument();
     }
+
     /**
      *start listening to the DOMContentLoaded event
      *
@@ -45,10 +46,15 @@ export class AntEvents {
         }, false);
     }
 
+    /**
+     * start listen all events ant-onclick
+     *
+     * @memberof AntEvents
+     */
     public addListenersToElementsOnClick(){
         let elements=document.querySelectorAll('[ant-onclick]');
         elements.forEach((ell)=>{
-            ell.addEventListener("click",()=>{
+            ell.addEventListener("click",(event)=>{
                 this.ant.element.parse(ell);
                 return false;
             },false)
@@ -56,10 +62,15 @@ export class AntEvents {
     }
     
     /**
-     * Rewritable function from the AntEvent instance\n   
-     * for example\n\n
-     * 'let antEvent=new AntEvent(antInstance);
-     *  antevent.onLoadDocument(()=>{ //code here...});'
+     * Rewritable function from the AntEvent instance<br>
+     * for example:
+     * ```javascript
+     * var antEvent=new AntEvent(antInstance);
+     * antevent.onLoadDocument(()=>{ 
+     *      //code here...
+     * });
+     * ```
+     * 
      * 
      * @param {Handler<ReadyDocumentEvent>} handler Promise function to call when the event is fulfilled
      * @memberof AntEvents

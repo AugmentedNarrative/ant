@@ -301,14 +301,34 @@ var AntElement = /** @class */ (function () {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EventDispatcher", function() { return EventDispatcher; });
+var __values = (undefined && undefined.__values) || function (o) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
+    if (m) return m.call(o);
+    return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+};
 var EventDispatcher = /** @class */ (function () {
     function EventDispatcher() {
         this.handlers = [];
     }
     EventDispatcher.prototype.fire = function (event) {
-        for (var _i = 0, _a = this.handlers; _i < _a.length; _i++) {
-            var h = _a[_i];
-            h(event);
+        var e_1, _a;
+        try {
+            for (var _b = __values(this.handlers), _c = _b.next(); !_c.done; _c = _b.next()) {
+                var h = _c.value;
+                h(event);
+            }
+        }
+        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        finally {
+            try {
+                if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
+            }
+            finally { if (e_1) throw e_1.error; }
         }
     };
     EventDispatcher.prototype.register = function (handler) {
@@ -368,21 +388,31 @@ var AntEvents = /** @class */ (function () {
             th1.readyDocumentDispatcher.fire({});
         }, false);
     };
+    /**
+     * start listen all events ant-onclick
+     *
+     * @memberof AntEvents
+     */
     AntEvents.prototype.addListenersToElementsOnClick = function () {
         var _this = this;
         var elements = document.querySelectorAll('[ant-onclick]');
         elements.forEach(function (ell) {
-            ell.addEventListener("click", function () {
+            ell.addEventListener("click", function (event) {
                 _this.ant.element.parse(ell);
                 return false;
             }, false);
         });
     };
     /**
-     * Rewritable function from the AntEvent instance\n
-     * for example\n\n
-     * 'let antEvent=new AntEvent(antInstance);
-     *  antevent.onLoadDocument(()=>{ //code here...});'
+     * Rewritable function from the AntEvent instance<br>
+     * for example:
+     * ```javascript
+     * var antEvent=new AntEvent(antInstance);
+     * antevent.onLoadDocument(()=>{
+     *      //code here...
+     * });
+     * ```
+     *
      *
      * @param {Handler<ReadyDocumentEvent>} handler Promise function to call when the event is fulfilled
      * @memberof AntEvents
@@ -457,8 +487,12 @@ var DebugElement = /** @class */ (function (_super) {
      */
     function DebugElement(element, ant) {
         var _this = _super.call(this, element, ant, "ant-debug") || this;
-        _this.message = _this.element.getAttribute('ant-debug');
-        console.log("ANT-DEBUG[" + _this.message + "]");
+        _this.setParserAttributes([
+            { name: "", valueDefault: "debug message" }
+        ]);
+        _this.message = _this.getAttributeValue("ant-debug");
+        //console.log(this.message);
+        console.log("ANT-DEBUG [%c" + _this.message + "%c]", 'background: #e9e9e9; color: blue', 'color:black');
         return _this;
     }
     return DebugElement;
@@ -558,9 +592,14 @@ var DownloadElement = /** @class */ (function (_super) {
          * @memberof DatasetContainer
          */
         _this.datasetIsReady = false;
-        _this.url = _this.element.getAttribute(_this.nameHook);
-        _this.format = (_this.element.getAttribute(_this.nameHook + "_format") == null) ? "json" : (_this.element.getAttribute(_this.nameHook + "_format"));
-        _this.success = _this.element.getAttribute(_this.nameHook + "_success");
+        _this.setParserAttributes([
+            { name: "", valueDefault: "" },
+            { name: "format", valueDefault: "geojson" },
+            { name: "success", valueDefault: "" },
+        ]);
+        _this.url = _this.getAttributeValue(_this.nameHook);
+        _this.format = _this.getAttributeValue(_this.nameHook + "_format");
+        _this.success = _this.getAttributeValue(_this.nameHook + "_success");
         _this.loadData();
         return _this;
     }
@@ -674,6 +713,11 @@ var ModifierElement = /** @class */ (function (_super) {
         _this.change();
         return _this;
     }
+    /**
+     * get atributes to modify target elements
+     *
+     * @memberof ModifierElement
+     */
     ModifierElement.prototype.getAttributesToChange = function () {
         var nuevosAttrs = [];
         var attrs = this.element.attributes;
@@ -773,6 +817,16 @@ var Parser = /** @class */ (function () {
          * @memberof Parser
          */
         this.id = "_";
+        /**
+         *
+         * atributes of hook <br>
+         *   p.eg. ant-table_dataset<br>
+         *  the attribute is dataset
+         *
+         * @type {Map <string,ParserAttribute>}
+         * @memberof Parser
+         */
+        this.parserAttributes = new Map();
         this.ant = ant;
         this.element = element;
         this.nameHook = nameHook;
@@ -811,6 +865,56 @@ var Parser = /** @class */ (function () {
         //console.log(2,nuevoval);
         this.element.setAttribute("ant___0initparse", nuevoval);
     };
+    /**
+     * set ParseAttributes to Parser
+     *
+     * @param {Array<ParserAttribute>} attrs
+     * @memberof Parser
+     */
+    Parser.prototype.setParserAttributes = function (attrs) {
+        var _this = this;
+        attrs.forEach(function (attr) {
+            var nameFull = (attr.name.length > 0) ? _this.nameHook + "_" + attr.name : _this.nameHook;
+            var value = _this.initAttributeValueOfElement(attr.name, attr);
+            attr.value = value;
+            _this.parserAttributes.set(nameFull, attr);
+        });
+    };
+    /**
+     *  get atributte value  <br>if no exist or is empty returns default value
+     *
+     * @param {string} attributteName full name of attribute (p. eg. ant-download_dataset)
+     * @returns
+     * @memberof Parser
+     */
+    Parser.prototype.getAttributeValue = function (attributteName) {
+        var attr = this.parserAttributes.get(attributteName);
+        var valor = "";
+        if (typeof attr != "undefined") {
+            valor = attr.value || "";
+        }
+        return valor;
+    };
+    /**
+     * get atributte value of element <br>if no exist or is empty returns default value
+     *
+     * @param {string} attributteName only propiety , for ant-download_success, write success
+     * @returns {string}
+     * @memberof Parser
+     */
+    Parser.prototype.initAttributeValueOfElement = function (attributteName, parserAttribute) {
+        //debugger;
+        var nameWithHook = (attributteName.length > 0) ? this.nameHook + "_" + attributteName : this.nameHook;
+        var nameWithoutHook = (attributteName.length > 0) ? "ant-" + attributteName : this.nameHook;
+        //verify if exist attributte in element 
+        //example: ant-download_format or ant-format returns value
+        var valuee = this.element.getAttribute(nameWithHook) || this.element.getAttribute(nameWithoutHook) || "";
+        if (valuee == "") {
+            //returns default value
+            valuee = parserAttribute.valueDefault;
+        }
+        return valuee;
+    };
     Parser.writeNewElementAttributes = function (element, attributes) {
         //first change the attrs and reload 
         attributes.forEach(function (attr) {
@@ -818,6 +922,16 @@ var Parser = /** @class */ (function () {
         });
         //reload
     };
+    /**
+     *  this function realod the parse to elements and delete any instance
+     *
+     * @static
+     * @param {Ant} ant
+     * @param {Array<Element>} elements
+     * @param {Array<any>} attributes
+     * @returns {boolean}
+     * @memberof Parser
+     */
     Parser.reload = function (ant, elements, attributes) {
         //debugger;
         var rre = false;
@@ -964,7 +1078,7 @@ var TableElement = /** @class */ (function (_super) {
         var columnasARenderear = (this.columns.length == 1 && this.columns[0] == "") ? dataset.columns : this.columns;
         var table;
         this.element.innerHTML = "";
-        if (this.element.tagName == "table") {
+        if (this.element.tagName == "TABLE") {
             table = this.element;
         }
         else {

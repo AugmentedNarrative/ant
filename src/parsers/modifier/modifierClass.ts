@@ -25,6 +25,11 @@ export class ModifierElement extends Parser{
         this.change();
     }
 
+    /**
+     * get atributes to modify target elements
+     *
+     * @memberof ModifierElement
+     */
     public getAttributesToChange(){
         let nuevosAttrs=[];
         let attrs=this.element.attributes;

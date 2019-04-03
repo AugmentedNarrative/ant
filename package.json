@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "webpack --mode development",
     "build": "webpack --mode production",
-    "tsdoc": "typedoc --out ts-doc src",
+    "tsdoc": "typedoc --out ts-doc src --theme minimal",
     "compile_ts": "tsc"
   },
   "keywords": [

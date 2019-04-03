@@ -74,7 +74,7 @@ export class AntElement {
             }
         }
     }
-
+    
     /**
      * function that verifies what value the attribute has and decides if it parse it or calls it from the scope
      *  

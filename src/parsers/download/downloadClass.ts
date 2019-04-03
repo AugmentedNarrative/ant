@@ -17,7 +17,7 @@ export class DownloadElement extends Parser implements DatasetContainer{
      * @type {*}
      * @memberof DownloadElement
      */
-    public url:any;
+    public url:string;
     /**
      * property defined from [ ant-downlaod_success ]\n
      * attribute to parse on succes data
@@ -25,7 +25,7 @@ export class DownloadElement extends Parser implements DatasetContainer{
      * @type {*}
      * @memberof DownloadElement
      */
-    public success:any;
+    public success:string;
     /**
      * property defined from [ ant-downlaod_format ]\n
      * format of the data : \n geojson,json,csv, etc
@@ -67,9 +67,14 @@ export class DownloadElement extends Parser implements DatasetContainer{
      */
     constructor(element:Element,ant:Ant) {
         super(element,ant,"ant-download");
-        this.url=this.element.getAttribute(this.nameHook);
-        this.format=(this.element.getAttribute(this.nameHook+"_format") == null )?"json":<string>(this.element.getAttribute(this.nameHook+"_format"));
-        this.success=this.element.getAttribute(this.nameHook+"_success");
+        this.setParserAttributes([
+            {name:"",valueDefault:""}, //ant-download is required
+            {name:"format",valueDefault:"geojson"}, //ant-download_format
+            {name:"success",valueDefault:""}, //ant-download_success  (parse elements or call function in scope)
+        ]);
+        this.url=this.getAttributeValue(this.nameHook);
+        this.format=this.getAttributeValue(this.nameHook+"_format");
+        this.success=this.getAttributeValue(this.nameHook+"_success");
         this.loadData();
         
     }
