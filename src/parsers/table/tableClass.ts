@@ -30,8 +30,13 @@ export class TableElement extends Parser{
 
     constructor(element:Element,ant:Ant) {
         super(element,ant,"ant-table");
-        this.dataset=this.element.getAttribute(this.nameHook+"_dataset") || "";
-        let columns1=this.element.getAttribute(this.nameHook+"_columns") || "";
+        this.setParserAttributes([
+            {name:"",valueDefault:""}, //ant-table is required
+            {name:"dataset",valueDefault:""}, //ant-table_dataset , required, selector to parse get dataset
+            {name:"columns",valueDefault:""}, //ant-table_columns , optional,  array columns to render "column1,column2,etc..."
+        ]);
+        this.dataset=this.getAttributeValue(this.nameHook+"_dataset") ;
+        let columns1=this.getAttributeValue(this.nameHook+"_columns");
         this.columns=(typeof columns1 == "string")? columns1.split(","):[""];
         //verify type Dataset object
         //selector, ant.data scope or url

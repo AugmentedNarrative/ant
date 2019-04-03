@@ -594,7 +594,7 @@ var DownloadElement = /** @class */ (function (_super) {
         _this.datasetIsReady = false;
         _this.setParserAttributes([
             { name: "", valueDefault: "" },
-            { name: "format", valueDefault: "geojson" },
+            { name: "format", valueDefault: "json" },
             { name: "success", valueDefault: "" },
         ]);
         _this.url = _this.getAttributeValue(_this.nameHook);
@@ -707,8 +707,11 @@ var ModifierElement = /** @class */ (function (_super) {
      * @memberof ModifierElement
      */
     function ModifierElement(element, ant) {
-        var _this = _super.call(this, element, ant, "ant-modifier") || this;
-        _this.selectorToModify = _this.element.getAttribute(_this.nameHook) || "";
+        var _this = _super.call(this, element, ant, "ant-set") || this;
+        _this.setParserAttributes([
+            { name: "", valueDefault: "" } //ant-set , required , element selector to set attributes
+        ]);
+        _this.selectorToModify = _this.getAttributeValue(_this.nameHook);
         _this.getAttributesToChange();
         _this.change();
         return _this;
@@ -767,7 +770,7 @@ __webpack_require__.r(__webpack_exports__);
  */
 var ModifierModule;
 (function (ModifierModule) {
-    ModifierModule.nameHook = "ant-modifier";
+    ModifierModule.nameHook = "ant-set";
     /**
      * initialize the element with hook named "ant-table"
      *
@@ -1054,8 +1057,13 @@ var TableElement = /** @class */ (function (_super) {
     __extends(TableElement, _super);
     function TableElement(element, ant) {
         var _this = _super.call(this, element, ant, "ant-table") || this;
-        _this.dataset = _this.element.getAttribute(_this.nameHook + "_dataset") || "";
-        var columns1 = _this.element.getAttribute(_this.nameHook + "_columns") || "";
+        _this.setParserAttributes([
+            { name: "", valueDefault: "" },
+            { name: "dataset", valueDefault: "" },
+            { name: "columns", valueDefault: "" },
+        ]);
+        _this.dataset = _this.getAttributeValue(_this.nameHook + "_dataset");
+        var columns1 = _this.getAttributeValue(_this.nameHook + "_columns");
         _this.columns = (typeof columns1 == "string") ? columns1.split(",") : [""];
         //verify type Dataset object
         //selector, ant.data scope or url

@@ -19,8 +19,11 @@ export class ModifierElement extends Parser{
      * @memberof ModifierElement
      */
     constructor(element:Element,ant:Ant){
-        super(element,ant,"ant-modifier");
-        this.selectorToModify=this.element.getAttribute(this.nameHook) || "";
+        super(element,ant,"ant-set");
+        this.setParserAttributes([
+            {name:"",valueDefault:""}  //ant-set , required , element selector to set attributes
+        ]);
+        this.selectorToModify=this.getAttributeValue(this.nameHook);
         this.getAttributesToChange();
         this.change();
     }

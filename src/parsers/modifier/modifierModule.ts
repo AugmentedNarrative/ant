@@ -6,7 +6,7 @@ import { Ant } from "../../ant";
  */
 export module ModifierModule {
     
-    export let nameHook = "ant-modifier";
+    export let nameHook = "ant-set";
     /**
      * initialize the element with hook named "ant-table"
      *
