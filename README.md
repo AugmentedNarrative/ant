@@ -1,5 +1,8 @@
-#Ant 
-Ant stands for Augmented Narrative Toolkit. A framework that enables web developers to easily create data driven documents as it integrates the power and complexity of a variety of tools that can be controlled by directly by HTML5 data tags, CSS3 and a little javascript. 
+# ANT
+
+## ANT stands for Augmented Narrative Toolkit
+
+ANT is a framework that enables web developers to easily create data driven documents as it integrates the power and complexity of a variety of tools that can be controlled by directly by HTML5 data tags, CSS3 and a little javascript. 
 
 An example of its use would be:
 
@@ -32,7 +35,8 @@ Will result in a map:
 
 And it all starts there. There are many, many, options and features. 
 
-##Demos
+## Demos
+
 - [A world's population explorer](http://augmentednarrative.github.io)
 - [Visualizing Boston's Police Department drug investigations and arrests](http://warondrugs.justicesos.org/)
 - [Mexico City's air quality dashboard](http://pa-w.github.io/airecdmx)
