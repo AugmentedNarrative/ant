@@ -70,7 +70,14 @@ export class Dataset {
     }
 
     public static extractDatasetFromScope(ant:Ant,key:string){
-        return ant.scope.data[key];
+        let data=ant.scope.data[key];
+        if(data instanceof Dataset){
+            return ant.scope.data[key];
+        }else{
+            let newDataset=new Dataset(JSON.stringify(data),"json")
+            return newDataset;
+        }
+        
     }
 
 }
