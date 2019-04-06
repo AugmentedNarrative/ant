@@ -7,16 +7,23 @@
     <title>Debug</title>
 </head>
 <body>
-    <a ant-onload ant-debug="Here I am"></a>
+    
+    <p>ejemplo de [ant-download] poniendo en la propiedad [ant-download_success] el nombre de una a funcion definida en las opciones que inicializan ANT </p>
+    <h3>(abre la consola)</h3>
+
+    
+    <!--delitosDownload es el nombre de la funcion definida en las opciones del objeto ANT  -->
+
     <a 
     ant-onload 
     ant-download="http://localhost/d3-ejemplos/datos/homicidio_doloso_2018_layer.geojson"
-    ant-download_id="delitos"
+    id="delitos"
     ant-download_format="geojson"
-    ant-download_onSuccess="#debug-onSuccess"
+    ant-download_success="delitosDownload" 
+    ant-debug="yendo por los datos"
     ></a>
     
-    <a ant-debug="listo aqui estan los datos" id="debug-onSuccess"></a>
+    
     
     
     
@@ -28,8 +35,10 @@
                 //delitos: 
             }, 
             callbacks: { 
-                delitosDownload: function (dataset, req){
+                delitosDownload: function (response){
                     //this.data.delitos ... 
+                    console.log("imprimiendo los datos desde la funcion almacenada en call");
+                    console.log(response);
                 }
             }
 
