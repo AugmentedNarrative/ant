@@ -9,12 +9,12 @@ import { Ant } from "../../ant";
  */
 export class DebugElement extends Parser {
     /**
-     *the message to show in debug
+     *the message to show in console
      *
      * @type {*}
      * @memberof DebugElement
      */
-    public message: any;
+    public message: string;
 
     /**
      *Creates an instance of DebugElement.
@@ -23,8 +23,12 @@ export class DebugElement extends Parser {
      * @memberof DebugElement
      */
     constructor(element:Element,ant:Ant) {
-        super(element,ant)
-        this.message=this.element.getAttribute('ant-debug');
-        console.log("ANT-DEBUG["+this.message+"]");
+        super(element,ant,"ant-debug");
+        this.setParserAttributes([
+            {name:"",valueDefault:"debug message"}
+        ]);
+        this.message=this.getAttributeValue("ant-debug");
+        //console.log(this.message);
+        console.log("ANT-DEBUG [%c"+this.message+"%c]" ,'background: #e9e9e9; color: blue','color:black');
     }
 }

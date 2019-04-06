@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Table example</title>
+</head>
+<body>
+    
+    <p>ejemplo de [ant-table] </p>
+    
+    
+    <a 
+    ant-onload 
+    ant-download="http://localhost/d3-ejemplos/datos/homicidio_doloso_2018_layer.geojson"
+    id="delitos"
+    ant-download_format="geojson"
+    ant-download_success="#tabla-buena"
+    ant-debug="yendo por los datos desde ANT-DOWNLOAD"
+    ></a>
+    
+    <a ant-onclick ant-debug="un click en menos columnas" href="#" ant-select="#tabla-buena" ant-set__ant-columns="m1,m2,m3,m4" >menos columnas</a>
+    <a ant-onclick ant-debug="un click en mas columnas" href="#" ant-select="#tabla-buena" ant-set__ant-columns="" >mas columnas</a>
+
+    <table id="tabla-buena" ant-table ant-dataset="#delitos" ant-columns="" ant-debug="dibujando los datos en la tabla1"></table>
+    
+    <script src="../dist/bundle.js"></script>
+    <script>
+        var antinstance=new ant.Ant({});
+
+    </script>
+</body>
+</html>

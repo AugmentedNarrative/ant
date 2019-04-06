@@ -23,6 +23,15 @@ export class Ant {
      * @memberof Ants
      */
     element:AntElement;
+
+        /**
+     *
+     *
+     * @type {AntScope}
+     * @memberof Ant
+     */
+    public scope!:AntScope;
+
     /**
      *Creates an instance of Ant.
      * @param {*} options 
@@ -35,6 +44,15 @@ export class Ant {
         this.events.onLoadDocument(()=>{
             this.parseItems_onLoad();
         });
+        this.scope={data:{},callbacks:{},elements:{}};
+        if( options.hasOwnProperty('data')){
+            this.scope.data=options.data;
+        }
+        if( options.hasOwnProperty('callbacks')){
+            this.scope.callbacks=options.callbacks;
+        }
+        //lo listen ant-onclick events
+        this.events.addListenersToElementsOnClick();
     }
 
     /**
@@ -50,9 +68,49 @@ export class Ant {
             this.element.parse(ele);
         });
     }
+
+    /**
+     * save an item to ant scope
+     *
+     * @param {string} group (data,callbacks or elements)
+     * @param {*} item 
+     * @param {string} id accesible key
+     * @returns {boolean} if saved or not saved
+     * @memberof Ant
+     */
+    public addItemToScope(group:string, item:any,id:string):boolean{
+        let saved=false;
+        if(group=="data"){
+            //only dataset objects
+            this.scope.data[id]=item;
+            saved=true
+            //console.log(item instanceof Dataset);
+        }else if(group=="callbacks"){
+            //only functions
+            if(item instanceof Function){
+                this.scope.callbacks[id]=item;
+                saved=true
+            }
+        }else if(group=="elements"){
+            this.scope.elements[id]=item;
+            saved=true
+        }
+        return saved;
+    }
     
 
     
 
     
+}
+
+/**
+ * Represnts scope object stored in ant
+ *
+ * @interface AntScope
+ */
+interface AntScope{
+    data:any,
+    callbacks:any,
+    elements:any  
 }

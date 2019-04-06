@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Debug y Download</title>
+</head>
+<body>
+    
+    <p>ejemplo de [ant-download] poniendo en la propiedad [ant-download_success] el id de otro elemento para parsearlo al ocurrir este evento </p>
+    <h3>(abre la consola)</h3>
+    
+    <a 
+    ant-onload 
+    ant-download="http://localhost/d3-ejemplos/datos/homicidio_doloso_2018_layer.geojson"
+    id="delitos"
+    ant-download_format="geojson"
+    ant-download_success="#debug-onSuccess"
+    ant-debug="yendo por los datos"
+    ></a>
+    
+    <a ant-debug="listo aqui estan los datos, revisa en tus registros de xhr" id="debug-onSuccess"></a>
+    
+    
+    
+    
+    <script src="../dist/bundle.js"></script>
+    <script>
+        var antinstance=new ant.Ant({});
+
+    </script>
+</body>
+</html>
